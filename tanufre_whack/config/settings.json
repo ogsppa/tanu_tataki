@@ -1,0 +1,13 @@
+{
+  "screen_width": 1280,
+  "screen_height": 720,
+  "fullscreen": false,
+  "game_seconds": 60,
+  "show_debug_cursor": true,
+  "hit_cooldown": 0.25,
+  "leap_min_x": -250,
+  "leap_max_x": 250,
+  "leap_min_y": 100,
+  "leap_max_y": 500,
+  "hit_vz_threshold": 300
+}
