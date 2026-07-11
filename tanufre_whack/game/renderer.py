@@ -18,8 +18,8 @@ class Renderer:
         self.show_debug_cursor = show_debug_cursor
         self.width, self.height = screen.get_size()
         self.background = self._cover(background, self.width, self.height)
-        self.sign = pygame.transform.smoothscale(sign, (1080, 764))
-        self.sign_rect = self.sign.get_rect(midbottom=(self.width // 2, self.height + 210))
+        self.sign = self._fit(sign, int(self.width * 0.58), int(self.height * 0.56))
+        self.sign_rect = self.sign.get_rect(center=(self.width // 2, self.height // 2))
         self.font_large = pygame.font.SysFont("arial", 64, bold=True)
         self.font_medium = pygame.font.SysFont("arial", 34, bold=True)
         self.font_small = pygame.font.SysFont("arial", 22, bold=True)
@@ -87,3 +87,8 @@ class Renderer:
         surface = pygame.Surface((width, height))
         surface.blit(scaled, rect)
         return surface
+
+    def _fit(self, image: pygame.Surface, max_width: int, max_height: int) -> pygame.Surface:
+        scale = min(max_width / image.get_width(), max_height / image.get_height())
+        size = (round(image.get_width() * scale), round(image.get_height() * scale))
+        return pygame.transform.smoothscale(image, size)

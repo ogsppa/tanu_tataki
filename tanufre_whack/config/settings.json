@@ -1,6 +1,6 @@
 {
-  "screen_width": 1280,
-  "screen_height": 720,
+  "screen_width": 1600,
+  "screen_height": 900,
   "fullscreen": false,
   "game_seconds": 60,
   "show_debug_cursor": true,
