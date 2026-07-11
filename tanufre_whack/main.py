@@ -42,7 +42,7 @@ def main() -> None:
         )
         providers = [
             MouseInput(),
-            KeyboardInput([(mole.draw_rect.centerx, mole.draw_rect.centery) for mole in moles]),
+            KeyboardInput(lambda: [(mole.draw_rect.centerx, mole.draw_rect.centery) for mole in moles]),
         ]
 
         running = True
