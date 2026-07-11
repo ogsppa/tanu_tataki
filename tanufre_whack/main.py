@@ -10,9 +10,9 @@ from tanufre_whack.input import KeyboardInput, MouseInput
 
 
 MOLE_SPECS = [
-    MoleSpec("tanuki", "tanuki_normal.png", "tanuki_hit.png", 320, 534, 190, 1),
-    MoleSpec("boar", "boar_normal.png", "boar_hit.png", 640, 536, 214, 1),
-    MoleSpec("hamster", "hamster_normal.png", "hamster_hit.png", 960, 522, 170, 1),
+    MoleSpec("tanuki", "tanuki_normal.png", "tanuki_hit.png", 210, 1),
+    MoleSpec("boar", "boar_normal.png", "boar_hit.png", 230, 1),
+    MoleSpec("hamster", "hamster_normal.png", "hamster_hit.png", 190, 1),
 ]
 
 
@@ -27,17 +27,22 @@ def main() -> None:
         pygame.display.set_caption("Tanufre Whack")
         clock = pygame.time.Clock()
 
-        moles = [_make_mole(spec) for spec in MOLE_SPECS]
-        state = GameState(moles, float(settings["game_seconds"]))
         renderer = Renderer(
             screen,
             _load_asset("background.png"),
             _load_asset("sign.png"),
             bool(settings["show_debug_cursor"]),
         )
+        moles = [_make_mole(spec) for spec in MOLE_SPECS]
+        state = GameState(
+            moles,
+            float(settings["game_seconds"]),
+            screen.get_rect(),
+            renderer.sign_rect,
+        )
         providers = [
             MouseInput(),
-            KeyboardInput([(mole.x, mole.base_y - 130) for mole in moles]),
+            KeyboardInput([(mole.draw_rect.centerx, mole.draw_rect.centery) for mole in moles]),
         ]
 
         running = True
@@ -63,7 +68,7 @@ def main() -> None:
 def _make_mole(spec: MoleSpec) -> Mole:
     normal = _scale_to_width(_load_asset(spec.normal_asset), spec.width)
     hit = _scale_to_width(_load_asset(spec.hit_asset), spec.width)
-    return Mole(spec.name, normal, hit, spec.x, spec.base_y, spec.width, spec.points)
+    return Mole(spec.name, normal, hit, spec.width, spec.points)
 
 
 def _load_asset(name: str) -> pygame.Surface:

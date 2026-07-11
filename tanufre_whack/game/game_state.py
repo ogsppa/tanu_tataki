@@ -15,16 +15,22 @@ class MoleSpec:
     name: str
     normal_asset: str
     hit_asset: str
-    x: float
-    base_y: float
     width: int
     points: int
 
 
 class GameState:
-    def __init__(self, moles: Sequence[Mole], game_seconds: float) -> None:
+    def __init__(
+        self,
+        moles: Sequence[Mole],
+        game_seconds: float,
+        screen_rect: pygame.Rect,
+        sign_rect: pygame.Rect,
+    ) -> None:
         self.moles = list(moles)
         self.game_seconds = float(game_seconds)
+        self.screen_rect = screen_rect
+        self.sign_rect = sign_rect
         self.remaining_seconds = float(game_seconds)
         self.score = 0
         self.running = False
@@ -46,6 +52,8 @@ class GameState:
             mole.visible_timer = 0.0
             mole.hit_timer = 0.0
             mole.cooldown = 0.0
+            mole.hidden_center = self.sign_rect.center
+            mole.target_center = self.sign_rect.center
 
     def update(self, dt: float, points: Sequence[InputPoint]) -> None:
         self.last_points = list(points)
@@ -90,4 +98,32 @@ class GameState:
         choices = [mole for mole in self.moles if mole.state == "hidden" and mole.cooldown <= 0.0]
         if not choices:
             return
-        random.choice(choices).spawn(random.uniform(0.75, 1.25))
+        mole = random.choice(choices)
+        edge = random.choice(["top", "right", "bottom", "left"])
+        hidden_center, target_center = self._spawn_centers(mole, edge)
+        mole.spawn(random.uniform(0.75, 1.25), edge, hidden_center, target_center)
+
+    def _spawn_centers(
+        self, mole: Mole, edge: str
+    ) -> tuple[tuple[float, float], tuple[float, float]]:
+        image = mole.image
+        half_w = image.get_width() / 2
+        half_h = image.get_height() / 2
+
+        min_x = max(self.screen_rect.left + half_w, self.sign_rect.left + half_w)
+        max_x = min(self.screen_rect.right - half_w, self.sign_rect.right - half_w)
+        min_y = max(self.screen_rect.top + half_h, self.sign_rect.top + half_h)
+        max_y = min(self.screen_rect.bottom - half_h, self.sign_rect.bottom - half_h)
+
+        if edge == "top":
+            x = random.uniform(min_x, max_x)
+            return (x, self.sign_rect.top + half_h), (x, self.sign_rect.top - 2)
+        if edge == "bottom":
+            x = random.uniform(min_x, max_x)
+            return (x, self.sign_rect.bottom - half_h), (x, self.sign_rect.bottom + 2)
+        if edge == "left":
+            y = random.uniform(min_y, max_y)
+            return (self.sign_rect.left + half_w, y), (self.sign_rect.left - 2, y)
+
+        y = random.uniform(min_y, max_y)
+        return (self.sign_rect.right - half_w, y), (self.sign_rect.right + 2, y)
