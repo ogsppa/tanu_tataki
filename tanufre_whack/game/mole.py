@@ -10,8 +10,6 @@ class Mole:
     name: str
     normal_image: pygame.Surface
     hit_image: pygame.Surface
-    x: float
-    base_y: float
     width: int
     points: int = 1
     state: str = "hidden"
@@ -19,6 +17,9 @@ class Mole:
     visible_timer: float = 0.0
     hit_timer: float = 0.0
     cooldown: float = 0.0
+    edge: str = "top"
+    hidden_center: tuple[float, float] = (0.0, 0.0)
+    target_center: tuple[float, float] = (0.0, 0.0)
 
     def update(self, dt: float) -> None:
         if self.cooldown > 0.0:
@@ -42,9 +43,18 @@ class Mole:
                 self.state = "hidden"
                 self.cooldown = 0.15
 
-    def spawn(self, visible_seconds: float) -> None:
+    def spawn(
+        self,
+        visible_seconds: float,
+        edge: str,
+        hidden_center: tuple[float, float],
+        target_center: tuple[float, float],
+    ) -> None:
         if self.state != "hidden" or self.cooldown > 0.0:
             return
+        self.edge = edge
+        self.hidden_center = hidden_center
+        self.target_center = target_center
         self.state = "rising"
         self.visible_amount = 0.0
         self.visible_timer = visible_seconds
@@ -67,9 +77,11 @@ class Mole:
     @property
     def draw_rect(self) -> pygame.Rect:
         image = self.image
-        visible_offset = int((1.0 - self.visible_amount) * image.get_height() * 0.76)
-        rect = image.get_rect(midbottom=(round(self.x), round(self.base_y + visible_offset)))
-        return rect
+        start_x, start_y = self.hidden_center
+        end_x, end_y = self.target_center
+        x = start_x + (end_x - start_x) * self.visible_amount
+        y = start_y + (end_y - start_y) * self.visible_amount
+        return image.get_rect(center=(round(x), round(y)))
 
     @property
     def hitbox(self) -> pygame.Rect:

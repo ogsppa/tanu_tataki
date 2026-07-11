@@ -39,12 +39,11 @@ class Renderer:
                 continue
             image = mole.image
             rect = mole.draw_rect
-            visible_height = min(image.get_height(), max(0, round(image.get_height() * mole.visible_amount)))
-            if visible_height <= 0:
-                continue
-            source = pygame.Rect(0, image.get_height() - visible_height, image.get_width(), visible_height)
-            target = pygame.Rect(rect.left, rect.bottom - visible_height, image.get_width(), visible_height)
-            self.screen.blit(image, target, source)
+            clip = self._outside_sign_clip(mole.edge)
+            previous_clip = self.screen.get_clip()
+            self.screen.set_clip(clip)
+            self.screen.blit(image, rect)
+            self.screen.set_clip(previous_clip)
 
     def _draw_hud(self, state: GameState) -> None:
         self._label(f"SCORE {state.score}", 28, 24, self.font_medium)
@@ -92,3 +91,12 @@ class Renderer:
         scale = min(max_width / image.get_width(), max_height / image.get_height())
         size = (round(image.get_width() * scale), round(image.get_height() * scale))
         return pygame.transform.smoothscale(image, size)
+
+    def _outside_sign_clip(self, edge: str) -> pygame.Rect:
+        if edge == "top":
+            return pygame.Rect(0, 0, self.width, self.sign_rect.top)
+        if edge == "bottom":
+            return pygame.Rect(0, self.sign_rect.bottom, self.width, self.height - self.sign_rect.bottom)
+        if edge == "left":
+            return pygame.Rect(0, 0, self.sign_rect.left, self.height)
+        return pygame.Rect(self.sign_rect.right, 0, self.width - self.sign_rect.right, self.height)
