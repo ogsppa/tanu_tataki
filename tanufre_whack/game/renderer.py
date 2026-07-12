@@ -49,14 +49,12 @@ class Renderer:
     def _draw_hud(self, state: GameState) -> None:
         self._label(f"SCORE {state.score}", 28, 24, self.font_medium)
         self._label(f"TIME {int(state.remaining_seconds + 0.999):02d}", self.width - 190, 24, self.font_medium)
-        if not state.running:
-            headline = "TANUFRE WHACK"
-            prompt = "CLICK OR PRESS SPACE"
-            if state.finished:
-                headline = f"FINISH  SCORE {state.score}"
-                prompt = "CLICK TO RESTART"
-            self._center_label(headline, self.height * 0.30, self.font_large)
-            self._center_label(prompt, self.height * 0.43, self.font_medium)
+        if state.screen == "start":
+            self._center_label("TANUFRE WHACK", self.visible_sign_rect.top - 78, self.font_large)
+            self._button_label("START", self.visible_sign_rect.bottom + 74)
+        elif state.screen == "result":
+            self._center_label(f"FINISH  SCORE {state.score}", self.visible_sign_rect.top - 78, self.font_large)
+            self._button_label("BACK TO START", self.visible_sign_rect.bottom + 74)
 
     def _draw_debug(self, state: GameState) -> None:
         for point in state.last_points:
@@ -78,6 +76,18 @@ class Renderer:
         shadow = font.render(text, True, (20, 24, 34))
         rect = surface.get_rect(center=(self.width // 2, round(y)))
         self.screen.blit(shadow, rect.move(4, 4))
+        self.screen.blit(surface, rect)
+
+    def _button_label(self, text: str, y: float) -> None:
+        surface = self.font_medium.render(text, True, (255, 255, 255))
+        shadow = self.font_medium.render(text, True, (20, 24, 34))
+        padding_x = 34
+        padding_y = 14
+        rect = surface.get_rect(center=(self.width // 2, round(y)))
+        button_rect = rect.inflate(padding_x * 2, padding_y * 2)
+        pygame.draw.rect(self.screen, (28, 42, 61), button_rect, border_radius=8)
+        pygame.draw.rect(self.screen, (255, 255, 255), button_rect, width=2, border_radius=8)
+        self.screen.blit(shadow, rect.move(3, 3))
         self.screen.blit(surface, rect)
 
     def _cover(self, image: pygame.Surface, width: int, height: int) -> pygame.Surface:
