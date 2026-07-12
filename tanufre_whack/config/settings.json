@@ -2,7 +2,7 @@
   "screen_width": 1600,
   "screen_height": 900,
   "fullscreen": false,
-  "game_seconds": 60,
+  "game_seconds": 30,
   "show_debug_cursor": true,
   "hit_cooldown": 0.25,
   "leap_min_x": -250,

@@ -33,19 +33,15 @@ class GameState:
         self.sign_rect = sign_rect
         self.remaining_seconds = float(game_seconds)
         self.score = 0
-        self.running = False
-        self.finished = False
+        self.screen = "start"
         self.spawn_timer = 0.0
         self.last_points: list[InputPoint] = []
-        self.message = "CLICK START"
 
     def start(self) -> None:
         self.score = 0
         self.remaining_seconds = self.game_seconds
-        self.running = True
-        self.finished = False
+        self.screen = "playing"
         self.spawn_timer = 0.15
-        self.message = ""
         for mole in self.moles:
             mole.state = "hidden"
             mole.visible_amount = 0.0
@@ -57,14 +53,14 @@ class GameState:
 
     def update(self, dt: float, points: Sequence[InputPoint]) -> None:
         self.last_points = list(points)
-        if not self.running:
+        if self.screen != "playing":
             return
 
         self.remaining_seconds = max(0.0, self.remaining_seconds - dt)
         if self.remaining_seconds <= 0.0:
-            self.running = False
-            self.finished = True
-            self.message = "TIME UP"
+            self.screen = "result"
+            self._hide_all_moles()
+            return
 
         for mole in self.moles:
             mole.update(dt)
@@ -82,13 +78,33 @@ class GameState:
             self.spawn_timer = random.uniform(0.38, 0.82)
 
     def handle_menu_click(self, events: Sequence[pygame.event.Event]) -> None:
-        if self.running:
+        if self.screen == "playing":
             return
         for event in events:
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if self.screen == "start" and self._is_confirm_event(event):
                 self.start()
-            elif event.type == pygame.KEYDOWN and event.key in (pygame.K_RETURN, pygame.K_SPACE):
-                self.start()
+            elif self.screen == "result" and self._is_confirm_event(event):
+                self.screen = "start"
+
+    @property
+    def running(self) -> bool:
+        return self.screen == "playing"
+
+    @property
+    def finished(self) -> bool:
+        return self.screen == "result"
+
+    def _is_confirm_event(self, event: pygame.event.Event) -> bool:
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            return True
+        return event.type == pygame.KEYDOWN and event.key in (pygame.K_RETURN, pygame.K_SPACE)
+
+    def _hide_all_moles(self) -> None:
+        for mole in self.moles:
+            mole.state = "hidden"
+            mole.visible_amount = 0.0
+            mole.visible_timer = 0.0
+            mole.hit_timer = 0.0
 
     def _spawn_random_mole(self) -> None:
         active_count = sum(1 for mole in self.moles if mole.active)
