@@ -21,6 +21,7 @@ class Renderer:
         self.sign = self._fit(sign, int(self.width * 0.58), int(self.height * 0.56))
         self.sign_rect = self.sign.get_rect(center=(self.width // 2, self.height // 2))
         self.visible_sign_rect = self._alpha_world_rect(self.sign, self.sign_rect)
+        self.sign_alpha_mask = self._alpha_mask(self.sign)
         self.font_large = pygame.font.SysFont("arial", 64, bold=True)
         self.font_medium = pygame.font.SysFont("arial", 34, bold=True)
         self.font_small = pygame.font.SysFont("arial", 22, bold=True)
@@ -35,16 +36,15 @@ class Renderer:
         pygame.display.flip()
 
     def _draw_moles(self, moles: list[Mole]) -> None:
+        mole_layer = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
         for mole in moles:
             if mole.state == "hidden":
                 continue
             image = mole.image
             rect = mole.draw_rect
-            clip = self._outside_sign_clip(mole.edge)
-            previous_clip = self.screen.get_clip()
-            self.screen.set_clip(clip)
-            self.screen.blit(image, rect)
-            self.screen.set_clip(previous_clip)
+            mole_layer.blit(image, rect)
+        mole_layer.blit(self.sign_alpha_mask, self.sign_rect, special_flags=pygame.BLEND_RGBA_SUB)
+        self.screen.blit(mole_layer, (0, 0))
 
     def _draw_hud(self, state: GameState) -> None:
         self._label(f"SCORE {state.score}", 28, 24, self.font_medium)
@@ -104,25 +104,16 @@ class Renderer:
         size = (round(image.get_width() * scale), round(image.get_height() * scale))
         return pygame.transform.smoothscale(image, size)
 
-    def _outside_sign_clip(self, edge: str) -> pygame.Rect:
-        if edge == "top":
-            return pygame.Rect(0, 0, self.width, self.visible_sign_rect.top)
-        if edge == "bottom":
-            return pygame.Rect(
-                0,
-                self.visible_sign_rect.bottom,
-                self.width,
-                self.height - self.visible_sign_rect.bottom,
-            )
-        if edge == "left":
-            return pygame.Rect(0, 0, self.visible_sign_rect.left, self.height)
-        return pygame.Rect(
-            self.visible_sign_rect.right,
-            0,
-            self.width - self.visible_sign_rect.right,
-            self.height,
-        )
-
     def _alpha_world_rect(self, image: pygame.Surface, image_rect: pygame.Rect) -> pygame.Rect:
         local_rect = image.get_bounding_rect(1)
         return local_rect.move(image_rect.topleft)
+
+    def _alpha_mask(self, image: pygame.Surface) -> pygame.Surface:
+        mask = pygame.Surface(image.get_size(), pygame.SRCALPHA)
+        width, height = image.get_size()
+        for y in range(height):
+            for x in range(width):
+                alpha = image.get_at((x, y)).a
+                if alpha:
+                    mask.set_at((x, y), (0, 0, 0, alpha))
+        return mask
