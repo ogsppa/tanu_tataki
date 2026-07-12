@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import random
 from dataclasses import dataclass
-from typing import Sequence
+from typing import Optional, Sequence
 
 import pygame
 
@@ -114,10 +114,38 @@ class GameState:
         choices = [mole for mole in self.moles if mole.state == "hidden" and mole.cooldown <= 0.0]
         if not choices:
             return
-        mole = random.choice(choices)
-        edge = random.choice(["top", "right", "bottom", "left"])
-        hidden_center, target_center = self._spawn_centers(mole, edge)
-        mole.spawn(random.uniform(0.75, 1.25), edge, hidden_center, target_center)
+        random.shuffle(choices)
+        for mole in choices:
+            spawn = self._find_non_overlapping_spawn(mole)
+            if spawn is None:
+                continue
+            edge, hidden_center, target_center = spawn
+            mole.spawn(random.uniform(0.75, 1.25), edge, hidden_center, target_center)
+            return
+
+    def _find_non_overlapping_spawn(
+        self, mole: Mole
+    ) -> Optional[tuple[str, tuple[float, float], tuple[float, float]]]:
+        edges = ["top", "right", "bottom", "left"]
+        for _ in range(24):
+            edge = random.choice(edges)
+            hidden_center, target_center = self._spawn_centers(mole, edge)
+            target_rect = self._rect_at(mole, target_center).inflate(28, 28)
+            if not self._overlaps_active_moles(mole, target_rect):
+                return edge, hidden_center, target_center
+        return None
+
+    def _overlaps_active_moles(self, candidate: Mole, target_rect: pygame.Rect) -> bool:
+        for mole in self.moles:
+            if mole is candidate or not mole.active:
+                continue
+            other_target_rect = self._rect_at(mole, mole.target_center).inflate(28, 28)
+            if target_rect.colliderect(other_target_rect):
+                return True
+        return False
+
+    def _rect_at(self, mole: Mole, center: tuple[float, float]) -> pygame.Rect:
+        return mole.image.get_rect(center=(round(center[0]), round(center[1])))
 
     def _spawn_centers(
         self, mole: Mole, edge: str
