@@ -55,6 +55,8 @@ class Renderer:
         elif state.screen == "result":
             self._center_label(f"FINISH  SCORE {state.score}", self.visible_sign_rect.top - 78, self.font_large)
             self._button_label("BACK TO START", self.visible_sign_rect.bottom + 74)
+        elif state.speed_up_timer > 0.0:
+            self._center_label("SPEED UP", self.visible_sign_rect.top - 78, self.font_large)
 
     def _draw_debug(self, state: GameState) -> None:
         for point in state.last_points:
