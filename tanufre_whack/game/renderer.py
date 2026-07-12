@@ -20,6 +20,7 @@ class Renderer:
         self.background = self._cover(background, self.width, self.height)
         self.sign = self._fit(sign, int(self.width * 0.58), int(self.height * 0.56))
         self.sign_rect = self.sign.get_rect(center=(self.width // 2, self.height // 2))
+        self.visible_sign_rect = self._alpha_world_rect(self.sign, self.sign_rect)
         self.font_large = pygame.font.SysFont("arial", 64, bold=True)
         self.font_medium = pygame.font.SysFont("arial", 34, bold=True)
         self.font_small = pygame.font.SysFont("arial", 22, bold=True)
@@ -64,6 +65,7 @@ class Renderer:
         for index, mole in enumerate(state.moles, start=1):
             pygame.draw.rect(self.screen, (80, 230, 180), mole.hitbox, 2)
             self._label(str(index), mole.hitbox.centerx - 7, mole.hitbox.top - 26, self.font_small)
+        pygame.draw.rect(self.screen, (255, 238, 88), self.visible_sign_rect, 2)
 
     def _label(self, text: str, x: float, y: float, font: pygame.font.Font) -> None:
         surface = font.render(text, True, (255, 255, 255))
@@ -94,9 +96,23 @@ class Renderer:
 
     def _outside_sign_clip(self, edge: str) -> pygame.Rect:
         if edge == "top":
-            return pygame.Rect(0, 0, self.width, self.sign_rect.top)
+            return pygame.Rect(0, 0, self.width, self.visible_sign_rect.top)
         if edge == "bottom":
-            return pygame.Rect(0, self.sign_rect.bottom, self.width, self.height - self.sign_rect.bottom)
+            return pygame.Rect(
+                0,
+                self.visible_sign_rect.bottom,
+                self.width,
+                self.height - self.visible_sign_rect.bottom,
+            )
         if edge == "left":
-            return pygame.Rect(0, 0, self.sign_rect.left, self.height)
-        return pygame.Rect(self.sign_rect.right, 0, self.width - self.sign_rect.right, self.height)
+            return pygame.Rect(0, 0, self.visible_sign_rect.left, self.height)
+        return pygame.Rect(
+            self.visible_sign_rect.right,
+            0,
+            self.width - self.visible_sign_rect.right,
+            self.height,
+        )
+
+    def _alpha_world_rect(self, image: pygame.Surface, image_rect: pygame.Rect) -> pygame.Rect:
+        local_rect = image.get_bounding_rect(1)
+        return local_rect.move(image_rect.topleft)

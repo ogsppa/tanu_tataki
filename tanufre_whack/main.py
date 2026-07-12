@@ -38,7 +38,7 @@ def main() -> None:
             moles,
             float(settings["game_seconds"]),
             screen.get_rect(),
-            renderer.sign_rect,
+            renderer.visible_sign_rect,
         )
         providers = [
             MouseInput(),
