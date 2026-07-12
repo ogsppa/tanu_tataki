@@ -39,6 +39,7 @@ def main() -> None:
             float(settings["game_seconds"]),
             screen.get_rect(),
             renderer.visible_sign_rect,
+            renderer.menu_button_rect,
         )
         providers = [
             MouseInput(),
