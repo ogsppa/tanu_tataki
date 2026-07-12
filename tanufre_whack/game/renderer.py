@@ -81,14 +81,17 @@ class Renderer:
     def _button_label(self, text: str, y: float) -> None:
         surface = self.font_medium.render(text, True, (255, 255, 255))
         shadow = self.font_medium.render(text, True, (20, 24, 34))
-        padding_x = 34
-        padding_y = 14
         rect = surface.get_rect(center=(self.width // 2, round(y)))
-        button_rect = rect.inflate(padding_x * 2, padding_y * 2)
+        button_rect = self.menu_button_rect
         pygame.draw.rect(self.screen, (28, 42, 61), button_rect, border_radius=8)
         pygame.draw.rect(self.screen, (255, 255, 255), button_rect, width=2, border_radius=8)
         self.screen.blit(shadow, rect.move(3, 3))
         self.screen.blit(surface, rect)
+
+    @property
+    def menu_button_rect(self) -> pygame.Rect:
+        center = (self.width // 2, round(self.visible_sign_rect.bottom + 74))
+        return pygame.Rect(0, 0, 360, 76).move(center[0] - 180, center[1] - 38)
 
     def _cover(self, image: pygame.Surface, width: int, height: int) -> pygame.Surface:
         scale = max(width / image.get_width(), height / image.get_height())

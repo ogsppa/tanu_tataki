@@ -26,11 +26,13 @@ class GameState:
         game_seconds: float,
         screen_rect: pygame.Rect,
         sign_rect: pygame.Rect,
+        menu_button_rect: pygame.Rect,
     ) -> None:
         self.moles = list(moles)
         self.game_seconds = float(game_seconds)
         self.screen_rect = screen_rect
         self.sign_rect = sign_rect
+        self.menu_button_rect = menu_button_rect
         self.remaining_seconds = float(game_seconds)
         self.score = 0
         self.screen = "start"
@@ -96,7 +98,7 @@ class GameState:
 
     def _is_confirm_event(self, event: pygame.event.Event) -> bool:
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            return True
+            return self.menu_button_rect.collidepoint(event.pos)
         return event.type == pygame.KEYDOWN and event.key in (pygame.K_RETURN, pygame.K_SPACE)
 
     def _hide_all_moles(self) -> None:
