@@ -38,7 +38,7 @@ class GameState:
         self.screen = "start"
         self.spawn_timer = 0.0
         self.speed_up_timer = 0.0
-        self.speed_up_announced = False
+        self.last_speed_phase = 0
         self.last_points: list[InputPoint] = []
 
     def start(self) -> None:
@@ -47,7 +47,7 @@ class GameState:
         self.screen = "playing"
         self.spawn_timer = 0.15
         self.speed_up_timer = 0.0
-        self.speed_up_announced = False
+        self.last_speed_phase = 0
         for mole in self.moles:
             mole.state = "hidden"
             mole.visible_amount = 0.0
@@ -68,8 +68,9 @@ class GameState:
             self._hide_all_moles()
             return
 
-        if self.is_fast_phase and not self.speed_up_announced:
-            self.speed_up_announced = True
+        current_phase = self.speed_phase
+        if current_phase > self.last_speed_phase:
+            self.last_speed_phase = current_phase
             self.speed_up_timer = 1.5
         if self.speed_up_timer > 0.0:
             self.speed_up_timer = max(0.0, self.speed_up_timer - dt)
@@ -107,26 +108,38 @@ class GameState:
         return self.screen == "result"
 
     @property
-    def is_fast_phase(self) -> bool:
-        return self.remaining_seconds <= self.game_seconds / 2
+    def speed_phase(self) -> int:
+        elapsed_seconds = self.game_seconds - self.remaining_seconds
+        phase_seconds = self.game_seconds / 3
+        if elapsed_seconds >= phase_seconds * 2:
+            return 2
+        if elapsed_seconds >= phase_seconds:
+            return 1
+        return 0
 
     @property
     def spawn_interval_range(self) -> tuple[float, float]:
-        if self.is_fast_phase:
+        if self.speed_phase == 2:
             return (0.38, 0.82)
-        return (0.95, 1.55)
+        if self.speed_phase == 1:
+            return (0.68, 1.10)
+        return (1.15, 1.85)
 
     @property
     def visible_seconds_range(self) -> tuple[float, float]:
-        if self.is_fast_phase:
+        if self.speed_phase == 2:
             return (0.75, 1.25)
-        return (1.35, 1.95)
+        if self.speed_phase == 1:
+            return (1.05, 1.55)
+        return (1.55, 2.20)
 
     @property
     def motion_seconds(self) -> tuple[float, float]:
-        if self.is_fast_phase:
+        if self.speed_phase == 2:
             return (0.22, 0.20)
-        return (0.46, 0.40)
+        if self.speed_phase == 1:
+            return (0.34, 0.30)
+        return (0.56, 0.48)
 
     def _is_confirm_event(self, event: pygame.event.Event) -> bool:
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
