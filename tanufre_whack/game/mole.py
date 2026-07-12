@@ -20,13 +20,15 @@ class Mole:
     edge: str = "top"
     hidden_center: tuple[float, float] = (0.0, 0.0)
     target_center: tuple[float, float] = (0.0, 0.0)
+    rise_seconds: float = 0.22
+    fall_seconds: float = 0.20
 
     def update(self, dt: float) -> None:
         if self.cooldown > 0.0:
             self.cooldown = max(0.0, self.cooldown - dt)
 
         if self.state == "rising":
-            self.visible_amount = min(1.0, self.visible_amount + dt / 0.22)
+            self.visible_amount = min(1.0, self.visible_amount + dt / self.rise_seconds)
             if self.visible_amount >= 1.0:
                 self.state = "visible"
         elif self.state == "visible":
@@ -38,7 +40,7 @@ class Mole:
             if self.hit_timer <= 0.0:
                 self.state = "falling"
         elif self.state == "falling":
-            self.visible_amount = max(0.0, self.visible_amount - dt / 0.20)
+            self.visible_amount = max(0.0, self.visible_amount - dt / self.fall_seconds)
             if self.visible_amount <= 0.0:
                 self.state = "hidden"
                 self.cooldown = 0.15
@@ -49,12 +51,16 @@ class Mole:
         edge: str,
         hidden_center: tuple[float, float],
         target_center: tuple[float, float],
+        rise_seconds: float = 0.22,
+        fall_seconds: float = 0.20,
     ) -> None:
         if self.state != "hidden" or self.cooldown > 0.0:
             return
         self.edge = edge
         self.hidden_center = hidden_center
         self.target_center = target_center
+        self.rise_seconds = rise_seconds
+        self.fall_seconds = fall_seconds
         self.state = "rising"
         self.visible_amount = 0.0
         self.visible_timer = visible_seconds
