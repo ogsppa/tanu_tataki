@@ -120,26 +120,26 @@ class GameState:
     @property
     def spawn_interval_range(self) -> tuple[float, float]:
         if self.speed_phase == 2:
-            return (0.38, 0.82)
+            return (0.28, 0.58)
         if self.speed_phase == 1:
-            return (0.68, 1.10)
-        return (1.15, 1.85)
+            return (0.50, 0.86)
+        return (0.82, 1.28)
 
     @property
     def visible_seconds_range(self) -> tuple[float, float]:
         if self.speed_phase == 2:
-            return (0.75, 1.25)
+            return (0.58, 0.95)
         if self.speed_phase == 1:
-            return (1.05, 1.55)
-        return (1.55, 2.20)
+            return (0.85, 1.25)
+        return (1.15, 1.65)
 
     @property
     def motion_seconds(self) -> tuple[float, float]:
         if self.speed_phase == 2:
-            return (0.22, 0.20)
+            return (0.18, 0.16)
         if self.speed_phase == 1:
-            return (0.34, 0.30)
-        return (0.56, 0.48)
+            return (0.27, 0.24)
+        return (0.40, 0.34)
 
     def _is_confirm_event(self, event: pygame.event.Event) -> bool:
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
