@@ -69,7 +69,9 @@ def main() -> None:
 def _make_mole(spec: MoleSpec) -> Mole:
     normal = _scale_to_width(_load_asset(spec.normal_asset), spec.width)
     hit = _scale_to_width(_load_asset(spec.hit_asset), spec.width)
-    return Mole(spec.name, normal, hit, spec.width, spec.points)
+    normal_mask = pygame.mask.from_surface(normal)
+    hit_mask = pygame.mask.from_surface(hit)
+    return Mole(spec.name, normal, hit, normal_mask, hit_mask, spec.width, spec.points)
 
 
 def _load_asset(name: str) -> pygame.Surface:

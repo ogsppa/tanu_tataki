@@ -82,7 +82,7 @@ class GameState:
             if not point.active:
                 continue
             for mole in self.moles:
-                if mole.hitbox.collidepoint(point.x, point.y):
+                if mole.collide_point(point.x, point.y):
                     self.score += mole.hit()
 
         self.spawn_timer -= dt
