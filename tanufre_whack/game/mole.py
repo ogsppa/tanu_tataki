@@ -10,6 +10,8 @@ class Mole:
     name: str
     normal_image: pygame.Surface
     hit_image: pygame.Surface
+    normal_mask: pygame.mask.Mask
+    hit_mask: pygame.mask.Mask
     width: int
     points: int = 1
     state: str = "hidden"
@@ -72,6 +74,16 @@ class Mole:
         self.hit_timer = 0.16
         return self.points
 
+    def collide_point(self, x: float, y: float) -> bool:
+        if self.state != "visible":
+            return False
+        rect = self.draw_rect
+        local_x = round(x - rect.left)
+        local_y = round(y - rect.top)
+        if local_x < 0 or local_y < 0 or local_x >= rect.width or local_y >= rect.height:
+            return False
+        return bool(self.mask.get_at((local_x, local_y)))
+
     @property
     def active(self) -> bool:
         return self.state != "hidden"
@@ -79,6 +91,10 @@ class Mole:
     @property
     def image(self) -> pygame.Surface:
         return self.hit_image if self.state == "hit" else self.normal_image
+
+    @property
+    def mask(self) -> pygame.mask.Mask:
+        return self.hit_mask if self.state == "hit" else self.normal_mask
 
     @property
     def draw_rect(self) -> pygame.Rect:
