@@ -65,10 +65,11 @@ class Renderer:
         if state.screen == "start":
             self._center_label("タヌたたき", self.visible_sign_rect.top - 82, self.font_title)
             self._button_label("すたーと！", self.visible_sign_rect.bottom + 74)
-            self._center_label(
+            self._center_plain_label(
                 "35点以上を取って限定ステッカーをげっとしよう！",
                 self.menu_button_rect.bottom + 44,
                 self.font_small,
+                (18, 46, 88),
             )
         elif state.screen == "countdown":
             self._center_label(state.countdown_text, self.height // 2, self.font_title)
@@ -106,6 +107,13 @@ class Renderer:
         shadow = font.render(text, True, (20, 24, 34))
         rect = surface.get_rect(center=(self.width // 2, round(y)))
         self.screen.blit(shadow, rect.move(4, 4))
+        self.screen.blit(surface, rect)
+
+    def _center_plain_label(
+        self, text: str, y: float, font: pygame.font.Font, color: tuple[int, int, int]
+    ) -> None:
+        surface = font.render(text, True, color)
+        rect = surface.get_rect(center=(self.width // 2, round(y)))
         self.screen.blit(surface, rect)
 
     def _button_label(self, text: str, y: float) -> None:
