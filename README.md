@@ -12,3 +12,17 @@ uv run tanufre-whack
 ```
 
 For development, the keyboard fallback can also hit targets with `1`, `2`, and `3`.
+
+## Web build
+
+The browser build uses pygbag.
+
+```powershell
+uv sync --dev
+uv run python tools/prepare_web_build.py
+uv run pygbag --build .web-src
+```
+
+The static site is generated under `.web-src/build/web`.
+
+GitHub Pages deployment is handled by `.github/workflows/deploy-pages.yml`.

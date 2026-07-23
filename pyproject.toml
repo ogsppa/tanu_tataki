@@ -17,3 +17,8 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["tanufre_whack"]
+
+[dependency-groups]
+dev = [
+    "pygbag>=0.9.3",
+]
