@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+
 import pygame
 
 from tanufre_whack.game.game_state import GameState, MoleSpec
@@ -16,7 +18,7 @@ MOLE_SPECS = [
 ]
 
 
-def main() -> None:
+async def main_async() -> None:
     settings = load_settings()
     pygame.init()
     try:
@@ -64,8 +66,13 @@ def main() -> None:
                 points.extend(provider.get_points(events))
             state.update(dt, points)
             renderer.draw(state)
+            await asyncio.sleep(0)
     finally:
         pygame.quit()
+
+
+def main() -> None:
+    asyncio.run(main_async())
 
 
 def _make_mole(spec: MoleSpec) -> Mole:
