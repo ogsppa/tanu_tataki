@@ -21,6 +21,7 @@ The browser build uses pygbag.
 uv sync --dev
 uv run python tools/prepare_web_build.py
 uv run pygbag --build --ume_block 0 --width 1600 --height 900 --app_name tanufre-whack web-src
+uv run python tools/finalize_web_build.py
 ```
 
 The static site is generated under `web-src/build/web`.
