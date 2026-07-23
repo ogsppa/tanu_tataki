@@ -22,11 +22,11 @@ async def main_async() -> None:
     settings = load_settings()
     pygame.init()
     try:
-        flags = pygame.FULLSCREEN if settings.get("fullscreen") else 0
+        flags = pygame.FULLSCREEN if settings.get("fullscreen") else pygame.RESIZABLE
         screen = pygame.display.set_mode(
             (int(settings["screen_width"]), int(settings["screen_height"])), flags
         )
-        pygame.display.set_caption("Tanufre Whack")
+        pygame.display.set_caption("タヌたたき")
         clock = pygame.time.Clock()
 
         renderer = Renderer(
@@ -59,6 +59,18 @@ async def main_async() -> None:
                     running = False
                 elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     running = False
+                elif event.type in (pygame.VIDEORESIZE, pygame.WINDOWSIZECHANGED):
+                    if not settings.get("fullscreen"):
+                        size = getattr(event, "size", screen.get_size())
+                        screen = pygame.display.set_mode(size, flags)
+                    renderer.resize(screen)
+                    state.update_layout(
+                        screen.get_rect(),
+                        renderer.visible_sign_rect,
+                        renderer.menu_button_rect,
+                        renderer.sign_rect,
+                        renderer.sign_opaque_mask,
+                    )
 
             state.handle_menu_click(events)
             points = []

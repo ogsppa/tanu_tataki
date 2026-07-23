@@ -20,6 +20,9 @@ class MoleSpec:
 
 
 class GameState:
+    COUNTDOWN_SECONDS = 3.8
+    PRIZE_SCORE = 35
+
     def __init__(
         self,
         moles: Sequence[Mole],
@@ -40,18 +43,61 @@ class GameState:
         self.remaining_seconds = float(game_seconds)
         self.score = 0
         self.screen = "start"
+        self.countdown_timer = 0.0
         self.spawn_timer = 0.0
         self.speed_up_timer = 0.0
         self.last_speed_phase = 0
         self.last_points: list[InputPoint] = []
 
+    def update_layout(
+        self,
+        screen_rect: pygame.Rect,
+        sign_rect: pygame.Rect,
+        menu_button_rect: pygame.Rect,
+        sign_image_rect: pygame.Rect,
+        sign_opaque_mask: pygame.mask.Mask,
+    ) -> None:
+        self.screen_rect = screen_rect
+        self.sign_rect = sign_rect
+        self.menu_button_rect = menu_button_rect
+        self.sign_image_rect = sign_image_rect
+        self.sign_opaque_mask = sign_opaque_mask
+
+    def begin_countdown(self) -> None:
+        self.score = 0
+        self.remaining_seconds = self.game_seconds
+        self.screen = "countdown"
+        self.countdown_timer = self.COUNTDOWN_SECONDS
+        self._reset_moles()
+
     def start(self) -> None:
         self.score = 0
         self.remaining_seconds = self.game_seconds
         self.screen = "playing"
+        self.countdown_timer = 0.0
         self.spawn_timer = 0.15
         self.speed_up_timer = 0.0
         self.last_speed_phase = 0
+        self._reset_moles()
+
+    @property
+    def countdown_text(self) -> str:
+        if self.screen != "countdown":
+            return ""
+        elapsed = self.COUNTDOWN_SECONDS - self.countdown_timer
+        if elapsed < 1.0:
+            return "3"
+        if elapsed < 2.0:
+            return "2"
+        if elapsed < 3.0:
+            return "1"
+        return "すたーと！"
+
+    @property
+    def has_prize_score(self) -> bool:
+        return self.score >= self.PRIZE_SCORE
+
+    def _reset_moles(self) -> None:
         for mole in self.moles:
             mole.state = "hidden"
             mole.visible_amount = 0.0
@@ -63,6 +109,11 @@ class GameState:
 
     def update(self, dt: float, points: Sequence[InputPoint]) -> None:
         self.last_points = list(points)
+        if self.screen == "countdown":
+            self.countdown_timer = max(0.0, self.countdown_timer - dt)
+            if self.countdown_timer <= 0.0:
+                self.start()
+            return
         if self.screen != "playing":
             return
 
@@ -101,13 +152,13 @@ class GameState:
             return
         for event in events:
             if self.screen == "start" and self._is_confirm_event(event):
-                self.start()
+                self.begin_countdown()
             elif self.screen == "result" and self._is_confirm_event(event):
                 self.screen = "start"
 
     @property
     def running(self) -> bool:
-        return self.screen == "playing"
+        return self.screen in ("countdown", "playing")
 
     @property
     def finished(self) -> bool:
