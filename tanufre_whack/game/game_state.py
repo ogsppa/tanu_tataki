@@ -27,12 +27,16 @@ class GameState:
         screen_rect: pygame.Rect,
         sign_rect: pygame.Rect,
         menu_button_rect: pygame.Rect,
+        sign_image_rect: pygame.Rect,
+        sign_opaque_mask: pygame.mask.Mask,
     ) -> None:
         self.moles = list(moles)
         self.game_seconds = float(game_seconds)
         self.screen_rect = screen_rect
         self.sign_rect = sign_rect
         self.menu_button_rect = menu_button_rect
+        self.sign_image_rect = sign_image_rect
+        self.sign_opaque_mask = sign_opaque_mask
         self.remaining_seconds = float(game_seconds)
         self.score = 0
         self.screen = "start"
@@ -80,6 +84,8 @@ class GameState:
 
         for point in points:
             if not point.active:
+                continue
+            if self._is_point_covered_by_sign(point.x, point.y):
                 continue
             for mole in self.moles:
                 if mole.collide_point(point.x, point.y):
@@ -152,6 +158,15 @@ class GameState:
             mole.visible_amount = 0.0
             mole.visible_timer = 0.0
             mole.hit_timer = 0.0
+
+    def _is_point_covered_by_sign(self, x: float, y: float) -> bool:
+        local_x = round(x - self.sign_image_rect.left)
+        local_y = round(y - self.sign_image_rect.top)
+        if local_x < 0 or local_y < 0:
+            return False
+        if local_x >= self.sign_image_rect.width or local_y >= self.sign_image_rect.height:
+            return False
+        return bool(self.sign_opaque_mask.get_at((local_x, local_y)))
 
     def _spawn_random_mole(self) -> None:
         active_count = sum(1 for mole in self.moles if mole.active)
