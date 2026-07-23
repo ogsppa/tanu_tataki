@@ -16,16 +16,28 @@ class Renderer:
     ) -> None:
         self.screen = screen
         self.show_debug_cursor = show_debug_cursor
+        self.source_background = background
+        self.source_sign = sign
         self.width, self.height = screen.get_size()
-        self.background = self._cover(background, self.width, self.height)
-        self.sign = self._fit(sign, int(self.width * 0.58), int(self.height * 0.56))
+        self._build_layout()
+
+    def resize(self, screen: pygame.Surface) -> None:
+        self.screen = screen
+        self.width, self.height = screen.get_size()
+        self._build_layout()
+
+    def _build_layout(self) -> None:
+        self.background = self._cover(self.source_background, self.width, self.height)
+        self.sign = self._fit(self.source_sign, int(self.width * 0.58), int(self.height * 0.56))
         self.sign_rect = self.sign.get_rect(center=(self.width // 2, self.height // 2))
         self.visible_sign_rect = self._alpha_world_rect(self.sign, self.sign_rect)
         self.sign_opaque_mask = pygame.mask.from_surface(self.sign, 0)
         self.sign_alpha_mask = self._alpha_mask(self.sign)
-        self.font_large = pygame.font.SysFont("arial", 64, bold=True)
-        self.font_medium = pygame.font.SysFont("arial", 34, bold=True)
-        self.font_small = pygame.font.SysFont("arial", 22, bold=True)
+        font_name = self._font_name()
+        self.font_title = pygame.font.SysFont(font_name, 76, bold=True)
+        self.font_large = pygame.font.SysFont(font_name, 64, bold=True)
+        self.font_medium = pygame.font.SysFont(font_name, 34, bold=True)
+        self.font_small = pygame.font.SysFont(font_name, 24, bold=True)
 
     def draw(self, state: GameState) -> None:
         self.screen.blit(self.background, (0, 0))
@@ -51,11 +63,30 @@ class Renderer:
         self._label(f"SCORE {state.score}", 28, 24, self.font_medium)
         self._label(f"TIME {int(state.remaining_seconds + 0.999):02d}", self.width - 190, 24, self.font_medium)
         if state.screen == "start":
-            self._center_label("TANUFRE WHACK", self.visible_sign_rect.top - 78, self.font_large)
-            self._button_label("START", self.visible_sign_rect.bottom + 74)
+            self._center_label("タヌたたき", self.visible_sign_rect.top - 82, self.font_title)
+            self._button_label("すたーと！", self.visible_sign_rect.bottom + 74)
+            self._center_label(
+                "35点以上を取って限定ステッカーをげっとしよう！",
+                self.menu_button_rect.bottom + 44,
+                self.font_small,
+            )
+        elif state.screen == "countdown":
+            self._center_label(state.countdown_text, self.height // 2, self.font_title)
         elif state.screen == "result":
             self._center_label(f"FINISH  SCORE {state.score}", self.visible_sign_rect.top - 78, self.font_large)
-            self._button_label("BACK TO START", self.visible_sign_rect.bottom + 74)
+            if state.has_prize_score:
+                self._message_lines(
+                    [
+                        "おめでとう！限定ステッカーげっとだよ！",
+                        "スタッフさんに",
+                        "『タヌキとともだちになった！』",
+                        "という合言葉を伝えてね",
+                    ],
+                    self._result_message_y(4),
+                )
+            else:
+                self._message_lines(["おしかった！", "よかったらまたあそんでね！"], self._result_message_y(2))
+            self._button_label("さいしょにもどる", self.menu_button_rect.centery)
         elif state.speed_up_timer > 0.0:
             self._center_label("SPEED UP", self.visible_sign_rect.top - 78, self.font_large)
 
@@ -86,6 +117,17 @@ class Renderer:
         pygame.draw.rect(self.screen, (255, 255, 255), button_rect, width=2, border_radius=8)
         self.screen.blit(shadow, rect.move(3, 3))
         self.screen.blit(surface, rect)
+
+    def _message_lines(self, lines: list[str], start_y: float) -> None:
+        for index, line in enumerate(lines):
+            self._center_label(line, start_y + index * 34, self.font_small)
+
+    def _result_message_y(self, line_count: int) -> float:
+        desired = self.visible_sign_rect.bottom + 36
+        last_line_y = desired + (line_count - 1) * 34
+        if last_line_y > self.menu_button_rect.top - 22:
+            desired = self.menu_button_rect.top - 22 - (line_count - 1) * 34
+        return max(self.visible_sign_rect.top + 52, desired)
 
     @property
     def menu_button_rect(self) -> pygame.Rect:
@@ -119,3 +161,21 @@ class Renderer:
                 if alpha:
                     mask.set_at((x, y), (0, 0, 0, alpha))
         return mask
+
+    def _font_name(self) -> str:
+        candidates = [
+            "yugothic",
+            "yu gothic",
+            "meiryo",
+            "noto sans cjk jp",
+            "noto sans jp",
+            "hiragino sans",
+            "arial unicode ms",
+            "arial",
+        ]
+        available = pygame.font.get_fonts()
+        for candidate in candidates:
+            key = candidate.replace(" ", "").lower()
+            if key in available:
+                return candidate
+        return "arial"
