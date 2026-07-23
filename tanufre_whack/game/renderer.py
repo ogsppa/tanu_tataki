@@ -21,6 +21,7 @@ class Renderer:
         self.sign = self._fit(sign, int(self.width * 0.58), int(self.height * 0.56))
         self.sign_rect = self.sign.get_rect(center=(self.width // 2, self.height // 2))
         self.visible_sign_rect = self._alpha_world_rect(self.sign, self.sign_rect)
+        self.sign_opaque_mask = pygame.mask.from_surface(self.sign, 0)
         self.sign_alpha_mask = self._alpha_mask(self.sign)
         self.font_large = pygame.font.SysFont("arial", 64, bold=True)
         self.font_medium = pygame.font.SysFont("arial", 34, bold=True)
@@ -62,10 +63,6 @@ class Renderer:
         for point in state.last_points:
             color = (255, 238, 88) if point.active else (255, 255, 255)
             pygame.draw.circle(self.screen, color, (round(point.x), round(point.y)), 10, 2)
-        for index, mole in enumerate(state.moles, start=1):
-            pygame.draw.rect(self.screen, (80, 230, 180), mole.hitbox, 2)
-            self._label(str(index), mole.hitbox.centerx - 7, mole.hitbox.top - 26, self.font_small)
-        pygame.draw.rect(self.screen, (255, 238, 88), self.visible_sign_rect, 2)
 
     def _label(self, text: str, x: float, y: float, font: pygame.font.Font) -> None:
         surface = font.render(text, True, (255, 255, 255))

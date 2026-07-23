@@ -40,6 +40,8 @@ def main() -> None:
             screen.get_rect(),
             renderer.visible_sign_rect,
             renderer.menu_button_rect,
+            renderer.sign_rect,
+            renderer.sign_opaque_mask,
         )
         providers = [
             MouseInput(),
@@ -69,8 +71,8 @@ def main() -> None:
 def _make_mole(spec: MoleSpec) -> Mole:
     normal = _scale_to_width(_load_asset(spec.normal_asset), spec.width)
     hit = _scale_to_width(_load_asset(spec.hit_asset), spec.width)
-    normal_mask = pygame.mask.from_surface(normal)
-    hit_mask = pygame.mask.from_surface(hit)
+    normal_mask = pygame.mask.from_surface(normal, 0)
+    hit_mask = pygame.mask.from_surface(hit, 0)
     return Mole(spec.name, normal, hit, normal_mask, hit_mask, spec.width, spec.points)
 
 
