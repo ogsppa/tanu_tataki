@@ -20,9 +20,9 @@ The browser build uses pygbag.
 ```powershell
 uv sync --dev
 uv run python tools/prepare_web_build.py
-uv run pygbag --build .web-src
+uv run pygbag --build --ume_block 0 --width 1600 --height 900 --app_name tanufre-whack web-src
 ```
 
-The static site is generated under `.web-src/build/web`.
+The static site is generated under `web-src/build/web`.
 
 GitHub Pages deployment is handled by `.github/workflows/deploy-pages.yml`.

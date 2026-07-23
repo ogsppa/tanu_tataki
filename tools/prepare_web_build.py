@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-WEB_SRC = ROOT / ".web-src"
+WEB_SRC = ROOT / "web-src"
 
 
 def main() -> None:
