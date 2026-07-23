@@ -37,7 +37,7 @@ jobs:
         run: uv run python tools/prepare_web_build.py
 
       - name: Build pygbag site
-        run: uv run pygbag --build .web-src
+        run: uv run pygbag --build --ume_block 0 --width 1600 --height 900 --app_name tanufre-whack web-src
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
@@ -47,7 +47,7 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .web-src/build/web
+          path: web-src/build/web
 
   deploy:
     environment:
