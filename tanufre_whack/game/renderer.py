@@ -28,7 +28,7 @@ class Renderer:
 
     def _build_layout(self) -> None:
         self.background = self._cover(self.source_background, self.width, self.height)
-        self.sign = self._fit(self.source_sign, int(self.width * 0.58), int(self.height * 0.56))
+        self.sign = self._fit(self.source_sign, int(self.width * 0.54), int(self.height * 0.46))
         self.sign_rect = self.sign.get_rect(center=(self.width // 2, self.height // 2))
         self.visible_sign_rect = self._alpha_world_rect(self.sign, self.sign_rect)
         self.sign_opaque_mask = pygame.mask.from_surface(self.sign, 0)
@@ -64,17 +64,19 @@ class Renderer:
         self._label(f"TIME {int(state.remaining_seconds + 0.999):02d}", self.width - 190, 24, self.font_medium)
         if state.screen == "start":
             self._center_label("タヌたたき", self.visible_sign_rect.top - 82, self.font_title)
-            self._button_label("すたーと！", self.visible_sign_rect.bottom + 74)
+            start_button_rect = self.button_rect_for("start")
+            self._button_label("すたーと！", start_button_rect)
             self._center_plain_label(
                 "35点以上を取って限定ステッカーをげっとしよう！",
-                self.menu_button_rect.bottom + 44,
+                start_button_rect.bottom + 44,
                 self.font_small,
                 (18, 46, 88),
             )
         elif state.screen == "countdown":
-            self._center_label(state.countdown_text, self.height // 2, self.font_title)
+            self._center_label(state.countdown_text, self.visible_sign_rect.top - 82, self.font_title)
         elif state.screen == "result":
             self._center_label(f"FINISH  SCORE {state.score}", self.visible_sign_rect.top - 78, self.font_large)
+            result_button_rect = self.button_rect_for("result")
             if state.has_prize_score:
                 self._message_lines(
                     [
@@ -83,11 +85,14 @@ class Renderer:
                         "『タヌキとともだちになった！』",
                         "という合言葉を伝えてね",
                     ],
-                    self._result_message_y(4),
+                    self._result_message_y(4, result_button_rect),
                 )
             else:
-                self._message_lines(["おしかった！", "よかったらまたあそんでね！"], self._result_message_y(2))
-            self._button_label("さいしょにもどる", self.menu_button_rect.centery)
+                self._message_lines(
+                    ["おしかった！", "よかったらまたあそんでね！"],
+                    self._result_message_y(2, result_button_rect),
+                )
+            self._button_label("さいしょにもどる", result_button_rect)
         elif state.speed_up_timer > 0.0:
             self._center_label("SPEED UP", self.visible_sign_rect.top - 78, self.font_large)
 
@@ -116,11 +121,10 @@ class Renderer:
         rect = surface.get_rect(center=(self.width // 2, round(y)))
         self.screen.blit(surface, rect)
 
-    def _button_label(self, text: str, y: float) -> None:
+    def _button_label(self, text: str, button_rect: pygame.Rect) -> None:
         surface = self.font_medium.render(text, True, (255, 255, 255))
         shadow = self.font_medium.render(text, True, (20, 24, 34))
-        rect = surface.get_rect(center=(self.width // 2, round(y)))
-        button_rect = self.menu_button_rect
+        rect = surface.get_rect(center=button_rect.center)
         pygame.draw.rect(self.screen, (28, 42, 61), button_rect, border_radius=8)
         pygame.draw.rect(self.screen, (255, 255, 255), button_rect, width=2, border_radius=8)
         self.screen.blit(shadow, rect.move(3, 3))
@@ -130,16 +134,23 @@ class Renderer:
         for index, line in enumerate(lines):
             self._center_label(line, start_y + index * 34, self.font_small)
 
-    def _result_message_y(self, line_count: int) -> float:
+    def _result_message_y(self, line_count: int, button_rect: pygame.Rect) -> float:
         desired = self.visible_sign_rect.bottom + 36
         last_line_y = desired + (line_count - 1) * 34
-        if last_line_y > self.menu_button_rect.top - 22:
-            desired = self.menu_button_rect.top - 22 - (line_count - 1) * 34
-        return max(self.visible_sign_rect.top + 52, desired)
+        if last_line_y > button_rect.top - 26:
+            desired = button_rect.top - 26 - (line_count - 1) * 34
+        return max(self.visible_sign_rect.bottom + 28, desired)
 
     @property
     def menu_button_rect(self) -> pygame.Rect:
-        center = (self.width // 2, round(self.visible_sign_rect.bottom + 74))
+        return self.button_rect_for("start")
+
+    def button_rect_for(self, screen_name: str) -> pygame.Rect:
+        if screen_name == "result":
+            center_y = self.height - 70
+        else:
+            center_y = max(self.visible_sign_rect.bottom + 74, self.height - 112)
+        center = (self.width // 2, round(center_y))
         return pygame.Rect(0, 0, 360, 76).move(center[0] - 180, center[1] - 38)
 
     def _cover(self, image: pygame.Surface, width: int, height: int) -> pygame.Surface:

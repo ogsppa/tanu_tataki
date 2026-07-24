@@ -67,11 +67,12 @@ async def main_async() -> None:
                     state.update_layout(
                         screen.get_rect(),
                         renderer.visible_sign_rect,
-                        renderer.menu_button_rect,
+                        renderer.button_rect_for(state.screen),
                         renderer.sign_rect,
                         renderer.sign_opaque_mask,
                     )
 
+            state.menu_button_rect = renderer.button_rect_for(state.screen)
             state.handle_menu_click(events)
             points = []
             for provider in providers:
