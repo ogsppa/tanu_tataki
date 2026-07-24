@@ -73,7 +73,7 @@ class Renderer:
                 (18, 46, 88),
             )
         elif state.screen == "countdown":
-            self._center_label(state.countdown_text, self.visible_sign_rect.top - 82, self.font_title)
+            self._center_label(state.countdown_text, self._countdown_y(state.countdown_text), self.font_title)
         elif state.screen == "result":
             self._center_label(f"FINISH  SCORE {state.score}", self.visible_sign_rect.top - 78, self.font_large)
             result_button_rect = self.button_rect_for("result")
@@ -133,6 +133,12 @@ class Renderer:
     def _message_lines(self, lines: list[str], start_y: float) -> None:
         for index, line in enumerate(lines):
             self._center_label(line, start_y + index * 34, self.font_small)
+
+    def _countdown_y(self, text: str) -> float:
+        text_height = self.font_title.size(text)[1]
+        safe_bottom = self.visible_sign_rect.top - 48
+        desired = safe_bottom - text_height / 2
+        return max(72, desired)
 
     def _result_message_y(self, line_count: int, button_rect: pygame.Rect) -> float:
         desired = self.visible_sign_rect.bottom + 36
