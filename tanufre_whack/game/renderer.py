@@ -86,15 +86,17 @@ class Renderer:
                         "という合言葉を伝えてね",
                     ],
                     self._result_message_y(4, result_button_rect),
+                    (18, 46, 88),
                 )
             else:
                 self._message_lines(
                     ["おしかった！", "よかったらまたあそんでね！"],
                     self._result_message_y(2, result_button_rect),
+                    (18, 46, 88),
                 )
             self._button_label("さいしょにもどる", result_button_rect)
         elif state.speed_up_timer > 0.0:
-            self._center_label("SPEED UP", self.visible_sign_rect.top - 78, self.font_large)
+            self._center_label("SPEED UP", self._notice_y("SPEED UP", self.font_large), self.font_large)
 
     def _draw_debug(self, state: GameState) -> None:
         for point in state.last_points:
@@ -130,12 +132,21 @@ class Renderer:
         self.screen.blit(shadow, rect.move(3, 3))
         self.screen.blit(surface, rect)
 
-    def _message_lines(self, lines: list[str], start_y: float) -> None:
+    def _message_lines(
+        self, lines: list[str], start_y: float, color: tuple[int, int, int] | None = None
+    ) -> None:
         for index, line in enumerate(lines):
-            self._center_label(line, start_y + index * 34, self.font_small)
+            y = start_y + index * 34
+            if color is None:
+                self._center_label(line, y, self.font_small)
+            else:
+                self._center_plain_label(line, y, self.font_small, color)
 
     def _countdown_y(self, text: str) -> float:
-        text_height = self.font_title.size(text)[1]
+        return self._notice_y(text, self.font_title)
+
+    def _notice_y(self, text: str, font: pygame.font.Font) -> float:
+        text_height = font.size(text)[1]
         safe_bottom = self.visible_sign_rect.top - 48
         desired = safe_bottom - text_height / 2
         return max(72, desired)
@@ -155,7 +166,7 @@ class Renderer:
         if screen_name == "result":
             center_y = self.height - 70
         else:
-            center_y = max(self.visible_sign_rect.bottom + 74, self.height - 112)
+            center_y = self.visible_sign_rect.bottom + 74
         center = (self.width // 2, round(center_y))
         return pygame.Rect(0, 0, 360, 76).move(center[0] - 180, center[1] - 38)
 
