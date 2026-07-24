@@ -22,6 +22,7 @@ class MoleSpec:
 class GameState:
     COUNTDOWN_SECONDS = 3.8
     PRIZE_SCORE = 35
+    RESULT_AUTO_RETURN_SECONDS = 30.0
 
     def __init__(
         self,
@@ -44,6 +45,7 @@ class GameState:
         self.score = 0
         self.screen = "start"
         self.countdown_timer = 0.0
+        self.result_timer = 0.0
         self.spawn_timer = 0.0
         self.speed_up_timer = 0.0
         self.last_speed_phase = 0
@@ -68,6 +70,7 @@ class GameState:
         self.remaining_seconds = self.game_seconds
         self.screen = "countdown"
         self.countdown_timer = self.COUNTDOWN_SECONDS
+        self.result_timer = 0.0
         self._reset_moles()
 
     def start(self) -> None:
@@ -75,6 +78,7 @@ class GameState:
         self.remaining_seconds = self.game_seconds
         self.screen = "playing"
         self.countdown_timer = 0.0
+        self.result_timer = 0.0
         self.spawn_timer = 0.15
         self.speed_up_timer = 0.0
         self.last_speed_phase = 0
@@ -114,12 +118,18 @@ class GameState:
             if self.countdown_timer <= 0.0:
                 self.start()
             return
+        if self.screen == "result":
+            self.result_timer = max(0.0, self.result_timer - dt)
+            if self.result_timer <= 0.0:
+                self.screen = "start"
+            return
         if self.screen != "playing":
             return
 
         self.remaining_seconds = max(0.0, self.remaining_seconds - dt)
         if self.remaining_seconds <= 0.0:
             self.screen = "result"
+            self.result_timer = self.RESULT_AUTO_RETURN_SECONDS
             self._hide_all_moles()
             return
 
@@ -155,6 +165,7 @@ class GameState:
                 self.begin_countdown()
             elif self.screen == "result" and self._is_confirm_event(event):
                 self.screen = "start"
+                self.result_timer = 0.0
 
     @property
     def running(self) -> bool:
