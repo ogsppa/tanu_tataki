@@ -1,9 +1,11 @@
+# -*- coding: utf-8 -*-
 from __future__ import annotations
 
 import pygame
 
 from tanufre_whack.game.game_state import GameState
 from tanufre_whack.game.mole import Mole
+from tanufre_whack.game.settings import ASSET_DIR
 
 
 class Renderer:
@@ -33,11 +35,10 @@ class Renderer:
         self.visible_sign_rect = self._alpha_world_rect(self.sign, self.sign_rect)
         self.sign_opaque_mask = pygame.mask.from_surface(self.sign, 0)
         self.sign_alpha_mask = self._alpha_mask(self.sign)
-        font_name = self._font_name()
-        self.font_title = pygame.font.SysFont(font_name, 76, bold=True)
-        self.font_large = pygame.font.SysFont(font_name, 64, bold=True)
-        self.font_medium = pygame.font.SysFont(font_name, 34, bold=True)
-        self.font_small = pygame.font.SysFont(font_name, 24, bold=True)
+        self.font_title = self._font(76)
+        self.font_large = self._font(64)
+        self.font_medium = self._font(34)
+        self.font_small = self._font(24)
 
     def draw(self, state: GameState) -> None:
         self.screen.blit(self.background, (0, 0))
@@ -197,6 +198,12 @@ class Renderer:
                 if alpha:
                     mask.set_at((x, y), (0, 0, 0, alpha))
         return mask
+
+    def _font(self, size: int) -> pygame.font.Font:
+        font_path = ASSET_DIR / "fonts" / "NotoSansJP-VF.ttf"
+        if font_path.exists():
+            return pygame.font.Font(str(font_path), size)
+        return pygame.font.SysFont(self._font_name(), size, bold=True)
 
     def _font_name(self) -> str:
         candidates = [
