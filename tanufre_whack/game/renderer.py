@@ -202,8 +202,11 @@ class Renderer:
     def _font(self, size: int) -> pygame.font.Font:
         font_path = ASSET_DIR / "fonts" / "NotoSansJP-VF.ttf"
         if font_path.exists():
-            return pygame.font.Font(str(font_path), size)
-        return pygame.font.SysFont(self._font_name(), size, bold=True)
+            font = pygame.font.Font(str(font_path), size)
+        else:
+            font = pygame.font.SysFont(self._font_name(), size, bold=True)
+        font.set_bold(True)
+        return font
 
     def _font_name(self) -> str:
         candidates = [

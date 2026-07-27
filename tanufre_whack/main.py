@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+import sys
 
 import pygame
 
@@ -23,6 +24,7 @@ async def main_async() -> None:
     settings = load_settings()
     pygame.init()
     try:
+        is_web = sys.platform == "emscripten"
         flags = pygame.FULLSCREEN if settings.get("fullscreen") else pygame.RESIZABLE
         screen = pygame.display.set_mode(
             (int(settings["screen_width"]), int(settings["screen_height"])), flags
@@ -60,7 +62,7 @@ async def main_async() -> None:
                     running = False
                 elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     running = False
-                elif event.type in (pygame.VIDEORESIZE, pygame.WINDOWSIZECHANGED):
+                elif event.type in (pygame.VIDEORESIZE, pygame.WINDOWSIZECHANGED) and not is_web:
                     if not settings.get("fullscreen"):
                         size = getattr(event, "size", screen.get_size())
                         screen = pygame.display.set_mode(size, flags)
