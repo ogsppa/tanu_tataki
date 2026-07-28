@@ -41,9 +41,7 @@ class Renderer:
         square_size = self.height
         self.menu_square_rect = pygame.Rect(0, 0, square_size, square_size)
         self.menu_square_rect.center = (self.width // 2, self.height // 2)
-        self.menu_background = pygame.transform.smoothscale(
-            self.source_menu_background, self.menu_square_rect.size
-        )
+        self.menu_background = self._cover(self.source_menu_background, self.width, self.height)
         self.sign = self._fit(self.source_sign, int(self.width * 0.54), int(self.height * 0.46))
         self.sign_rect = self.sign.get_rect(center=(self.width // 2, self.height // 2))
         self.visible_sign_rect = self._alpha_world_rect(self.sign, self.sign_rect)
@@ -76,9 +74,8 @@ class Renderer:
         pygame.display.flip()
 
     def _draw_menu_background(self) -> None:
-        self.screen.fill((248, 248, 248))
+        self.screen.blit(self.menu_background, (0, 0))
         pygame.draw.rect(self.screen, (255, 255, 255), self.menu_square_rect)
-        self.screen.blit(self.menu_background, self.menu_square_rect)
 
     def _draw_moles(self, moles: list[Mole]) -> None:
         mole_layer = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
