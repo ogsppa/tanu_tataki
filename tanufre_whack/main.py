@@ -35,6 +35,7 @@ async def main_async() -> None:
         renderer = Renderer(
             screen,
             _load_asset("background.png"),
+            _load_asset("bg.png"),
             _load_asset("sign.png"),
             _load_asset("title.png"),
             _load_asset("instruction_tanu.png"),

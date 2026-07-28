@@ -13,6 +13,7 @@ class Renderer:
         self,
         screen: pygame.Surface,
         background: pygame.Surface,
+        menu_background: pygame.Surface,
         sign: pygame.Surface,
         title: pygame.Surface,
         instruction_tanu: pygame.Surface,
@@ -22,6 +23,7 @@ class Renderer:
         self.screen = screen
         self.show_debug_cursor = show_debug_cursor
         self.source_background = background
+        self.source_menu_background = menu_background
         self.source_sign = sign
         self.source_title = title
         self.source_instruction_tanu = instruction_tanu
@@ -36,6 +38,12 @@ class Renderer:
 
     def _build_layout(self) -> None:
         self.background = self._cover(self.source_background, self.width, self.height)
+        square_size = self.height
+        self.menu_square_rect = pygame.Rect(0, 0, square_size, square_size)
+        self.menu_square_rect.center = (self.width // 2, self.height // 2)
+        self.menu_background = pygame.transform.smoothscale(
+            self.source_menu_background, self.menu_square_rect.size
+        )
         self.sign = self._fit(self.source_sign, int(self.width * 0.54), int(self.height * 0.46))
         self.sign_rect = self.sign.get_rect(center=(self.width // 2, self.height // 2))
         self.visible_sign_rect = self._alpha_world_rect(self.sign, self.sign_rect)
@@ -55,7 +63,10 @@ class Renderer:
         self.font_instruction = self._font(30)
 
     def draw(self, state: GameState) -> None:
-        self.screen.blit(self.background, (0, 0))
+        if state.screen in ("start", "instructions"):
+            self._draw_menu_background()
+        else:
+            self.screen.blit(self.background, (0, 0))
         if state.screen in ("playing", "countdown", "result"):
             self._draw_moles(state.moles)
             self.screen.blit(self.sign, self.sign_rect)
@@ -63,6 +74,11 @@ class Renderer:
         if self.show_debug_cursor:
             self._draw_debug(state)
         pygame.display.flip()
+
+    def _draw_menu_background(self) -> None:
+        self.screen.fill((248, 248, 248))
+        pygame.draw.rect(self.screen, (255, 255, 255), self.menu_square_rect)
+        self.screen.blit(self.menu_background, self.menu_square_rect)
 
     def _draw_moles(self, moles: list[Mole]) -> None:
         mole_layer = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
