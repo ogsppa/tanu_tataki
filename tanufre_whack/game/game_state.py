@@ -163,6 +163,8 @@ class GameState:
             return
         for event in events:
             if self.screen == "start" and self._is_confirm_event(event):
+                self.screen = "instructions"
+            elif self.screen == "instructions" and self._is_confirm_event(event):
                 self.begin_countdown()
             elif self.screen == "result" and self._is_confirm_event(event):
                 self.screen = "start"

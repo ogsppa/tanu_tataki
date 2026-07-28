@@ -14,12 +14,18 @@ class Renderer:
         screen: pygame.Surface,
         background: pygame.Surface,
         sign: pygame.Surface,
+        title: pygame.Surface,
+        instruction_tanu: pygame.Surface,
+        instruction_ino: pygame.Surface,
         show_debug_cursor: bool,
     ) -> None:
         self.screen = screen
         self.show_debug_cursor = show_debug_cursor
         self.source_background = background
         self.source_sign = sign
+        self.source_title = title
+        self.source_instruction_tanu = instruction_tanu
+        self.source_instruction_ino = instruction_ino
         self.width, self.height = screen.get_size()
         self._build_layout()
 
@@ -35,15 +41,24 @@ class Renderer:
         self.visible_sign_rect = self._alpha_world_rect(self.sign, self.sign_rect)
         self.sign_opaque_mask = pygame.mask.from_surface(self.sign, 0)
         self.sign_alpha_mask = self._alpha_mask(self.sign)
+        self.title = self._fit(self.source_title, int(self.width * 0.52), int(self.height * 0.46))
+        self.instruction_tanu = self._fit(
+            self.source_instruction_tanu, int(self.width * 0.22), int(self.height * 0.30)
+        )
+        self.instruction_ino = self._fit(
+            self.source_instruction_ino, int(self.width * 0.24), int(self.height * 0.30)
+        )
         self.font_title = self._font(76)
         self.font_large = self._font(64)
         self.font_medium = self._font(34)
         self.font_small = self._font(24)
+        self.font_instruction = self._font(30)
 
     def draw(self, state: GameState) -> None:
         self.screen.blit(self.background, (0, 0))
-        self._draw_moles(state.moles)
-        self.screen.blit(self.sign, self.sign_rect)
+        if state.screen in ("playing", "countdown", "result"):
+            self._draw_moles(state.moles)
+            self.screen.blit(self.sign, self.sign_rect)
         self._draw_hud(state)
         if self.show_debug_cursor:
             self._draw_debug(state)
@@ -61,10 +76,12 @@ class Renderer:
         self.screen.blit(mole_layer, (0, 0))
 
     def _draw_hud(self, state: GameState) -> None:
-        self._label(f"SCORE {state.score}", 28, 24, self.font_medium)
-        self._label(f"TIME {int(state.remaining_seconds + 0.999):02d}", self.width - 190, 24, self.font_medium)
+        if state.screen in ("playing", "countdown", "result"):
+            self._label(f"SCORE {state.score}", 28, 24, self.font_medium)
+            self._label(f"TIME {int(state.remaining_seconds + 0.999):02d}", self.width - 190, 24, self.font_medium)
         if state.screen == "start":
-            self._center_label("タヌたたき", self.visible_sign_rect.top - 82, self.font_title)
+            title_rect = self.title.get_rect(center=(self.width // 2, round(self.height * 0.34)))
+            self.screen.blit(self.title, title_rect)
             start_button_rect = self.button_rect_for("start")
             self._button_label("すたーと！", start_button_rect)
             self._center_plain_label(
@@ -73,6 +90,8 @@ class Renderer:
                 self.font_small,
                 (18, 46, 88),
             )
+        elif state.screen == "instructions":
+            self._draw_instructions()
         elif state.screen == "countdown":
             self._center_label(state.countdown_text, self._countdown_y(state.countdown_text), self.font_title)
         elif state.screen == "result":
@@ -98,6 +117,24 @@ class Renderer:
             self._button_label("さいしょにもどる", result_button_rect)
         elif state.speed_up_timer > 0.0:
             self._center_label("SPEED UP", self._notice_y("SPEED UP", self.font_large), self.font_large)
+
+    def _draw_instructions(self) -> None:
+        lines = [
+            "中央に置かれている看板から、",
+            "タヌキ、イノシシさん、はむさんが飛び出すよ！",
+            "飛び出して来たらタップしよう！",
+        ]
+        for index, line in enumerate(lines):
+            self._center_plain_label(line, 118 + index * 42, self.font_instruction, (18, 46, 88))
+
+        total_width = self.instruction_tanu.get_width() + self.instruction_ino.get_width() + 72
+        left = self.width // 2 - total_width // 2
+        image_bottom = self.height - 190
+        tanu_rect = self.instruction_tanu.get_rect(bottomleft=(left, image_bottom))
+        ino_rect = self.instruction_ino.get_rect(bottomleft=(tanu_rect.right + 72, image_bottom))
+        self.screen.blit(self.instruction_tanu, tanu_rect)
+        self.screen.blit(self.instruction_ino, ino_rect)
+        self._button_label("げーむすたーと", self.button_rect_for("instructions"))
 
     def _draw_debug(self, state: GameState) -> None:
         for point in state.last_points:
@@ -166,6 +203,10 @@ class Renderer:
     def button_rect_for(self, screen_name: str) -> pygame.Rect:
         if screen_name == "result":
             center_y = self.height - 70
+        elif screen_name == "instructions":
+            center_y = self.height - 76
+        elif screen_name == "start":
+            center_y = self.height - 158
         else:
             center_y = self.visible_sign_rect.bottom + 74
         center = (self.width // 2, round(center_y))

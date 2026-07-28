@@ -36,6 +36,9 @@ async def main_async() -> None:
             screen,
             _load_asset("background.png"),
             _load_asset("sign.png"),
+            _load_asset("title.png"),
+            _load_asset("instruction_tanu.png"),
+            _load_asset("instruction_ino.png"),
             bool(settings["show_debug_cursor"]),
         )
         moles = [_make_mole(spec) for spec in MOLE_SPECS]
