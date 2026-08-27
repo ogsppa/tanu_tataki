@@ -26,4 +26,14 @@ uv run python tools/finalize_web_build.py
 
 The static site is generated under `web-src/build/web`.
 
+## Cloudflare Pages
+
+`wrangler.toml` points Cloudflare Pages at the generated static site:
+
+```text
+web-src/build/web
+```
+
+Use the same build command as the web build steps above. Leave Cloudflare's deploy command blank when using the Git integration; Cloudflare Pages will upload the directory from `pages_build_output_dir`.
+
 GitHub Pages deployment is handled by `.github/workflows/deploy-pages.yml`.
