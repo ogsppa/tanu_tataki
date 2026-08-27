@@ -26,18 +26,24 @@ uv run python tools/finalize_web_build.py
 
 The static site is generated under `web-src/build/web`.
 
+## Lightweight JavaScript build
+
+`web-js` contains a Canvas version for older tablets and browsers. It does not load Python, WebAssembly, pygame, or the bundled Japanese font.
+
+Open `web-js/index.html` directly, or serve the folder as a static site.
+
 ## Cloudflare Workers Builds
 
-`wrangler.toml` points Cloudflare Workers static assets at the generated site:
+`wrangler.toml` points Cloudflare Workers static assets at the lightweight JavaScript build:
 
 ```text
-web-src/build/web
+web-js
 ```
 
-Use this build command:
+Use this build command for the lightweight JavaScript build:
 
 ```text
-python -m pip install uv && uv sync --dev && uv run python tools/prepare_web_build.py && uv run pygbag --build --ume_block 0 --width 1600 --height 900 --app_name tanufre-whack web-src && uv run python tools/finalize_web_build.py
+echo "No build step"
 ```
 
 Use this deploy command:
