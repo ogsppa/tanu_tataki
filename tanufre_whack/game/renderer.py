@@ -56,6 +56,7 @@ class Renderer:
         )
         self.font_title = self._font(76)
         self.font_large = self._font(64)
+        self.font_reaction = self._font(48)
         self.font_medium = self._font(34)
         self.font_small = self._font(24)
         self.font_instruction = self._font(30)
@@ -68,6 +69,7 @@ class Renderer:
         if state.screen in ("playing", "countdown", "result"):
             self._draw_moles(state.moles)
             self.screen.blit(self.sign, self.sign_rect)
+            self._draw_hit_reactions(state.moles)
         self._draw_hud(state)
         if self.show_debug_cursor:
             self._draw_debug(state)
@@ -87,6 +89,33 @@ class Renderer:
             mole_layer.blit(image, rect)
         mole_layer.blit(self.sign_alpha_mask, self.sign_rect, special_flags=pygame.BLEND_RGBA_SUB)
         self.screen.blit(mole_layer, (0, 0))
+
+    def _draw_hit_reactions(self, moles: list[Mole]) -> None:
+        reactions = {"tanuki": "うわ！", "boar": "ギャ！", "hamster": "ぴー！"}
+        for mole in moles:
+            if mole.state != "hit":
+                continue
+            text = reactions.get(mole.name)
+            if text is None:
+                continue
+            self._reaction_label(text, self._reaction_position(mole))
+
+    def _reaction_position(self, mole: Mole) -> tuple[int, int]:
+        rect = mole.draw_rect
+        x = rect.centerx
+        y = rect.top - 18
+        if mole.edge == "bottom":
+            y = rect.bottom + 22
+        elif mole.edge == "left":
+            x = rect.left - 46
+            y = rect.centery
+        elif mole.edge == "right":
+            x = rect.right + 46
+            y = rect.centery
+        return (
+            round(max(88, min(self.width - 88, x))),
+            round(max(88, min(self.height - 62, y))),
+        )
 
     def _draw_hud(self, state: GameState) -> None:
         if state.screen in ("playing", "countdown", "result"):
@@ -165,6 +194,14 @@ class Renderer:
         shadow = font.render(text, True, (20, 24, 34))
         rect = surface.get_rect(center=(self.width // 2, round(y)))
         self.screen.blit(shadow, rect.move(4, 4))
+        self.screen.blit(surface, rect)
+
+    def _reaction_label(self, text: str, center: tuple[int, int]) -> None:
+        stroke = self.font_reaction.render(text, True, (18, 46, 88))
+        surface = self.font_reaction.render(text, True, (255, 217, 74))
+        rect = surface.get_rect(center=center)
+        for dx, dy in ((-3, 0), (3, 0), (0, -3), (0, 3), (-2, -2), (2, -2), (-2, 2), (2, 2)):
+            self.screen.blit(stroke, rect.move(dx, dy))
         self.screen.blit(surface, rect)
 
     def _center_plain_label(

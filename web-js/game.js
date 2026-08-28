@@ -45,9 +45,9 @@
   };
 
   var moleSpecs = [
-    { name: "tanuki", normal: "tanukiNormal", hit: "tanukiHit", width: 242, points: 1 },
-    { name: "boar", normal: "boarNormal", hit: "boarHit", width: 265, points: 1 },
-    { name: "hamster", normal: "hamsterNormal", hit: "hamsterHit", width: 220, points: 1 }
+    { name: "tanuki", normal: "tanukiNormal", hit: "tanukiHit", width: 242, points: 1, reaction: "うわ！" },
+    { name: "boar", normal: "boarNormal", hit: "boarHit", width: 265, points: 1, reaction: "ギャ！" },
+    { name: "hamster", normal: "hamsterNormal", hit: "hamsterHit", width: 220, points: 1, reaction: "ぴー！" }
   ];
 
   function loadImages() {
@@ -197,6 +197,7 @@
       drawCover(images.background, 0, 0, DESIGN_WIDTH, DESIGN_HEIGHT);
       drawMoles();
       drawImageFit(images.sign, signRect());
+      drawHitReactions();
     }
     drawHud();
   }
@@ -274,6 +275,55 @@
       var image = images[mole.state === "hit" ? mole.spec.hit : mole.spec.normal];
       drawImageFit(image, rect);
     });
+  }
+
+  function drawHitReactions() {
+    state.moles.forEach(function (mole) {
+      if (mole.state !== "hit") return;
+      drawReactionText(mole, moleRect(mole));
+    });
+  }
+
+  function drawReactionText(mole, rect) {
+    var pos = reactionPosition(mole, rect);
+    var pop = 1 + mole.hitTimer * 1.8;
+    ctx.save();
+    ctx.translate(pos.x, pos.y);
+    ctx.rotate(pos.rotate);
+    setFont(Math.round(48 * pop));
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.lineWidth = 9;
+    ctx.strokeStyle = "#122e58";
+    ctx.fillStyle = "#ffd94a";
+    ctx.shadowColor = "rgba(255, 255, 255, 0.9)";
+    ctx.shadowBlur = 10;
+    ctx.strokeText(mole.spec.reaction, 0, 0);
+    ctx.fillText(mole.spec.reaction, 0, 0);
+    ctx.restore();
+  }
+
+  function reactionPosition(mole, rect) {
+    var x = rect.x + rect.width / 2;
+    var y = rect.y - 18;
+    var rotate = -0.12;
+    if (mole.edge === "bottom") {
+      y = rect.y + rect.height + 22;
+      rotate = 0.1;
+    } else if (mole.edge === "left") {
+      x = rect.x - 46;
+      y = rect.y + rect.height / 2;
+      rotate = -0.18;
+    } else if (mole.edge === "right") {
+      x = rect.x + rect.width + 46;
+      y = rect.y + rect.height / 2;
+      rotate = 0.18;
+    }
+    return {
+      x: clamp(x, 88, DESIGN_WIDTH - 88),
+      y: clamp(y, 88, DESIGN_HEIGHT - 62),
+      rotate: rotate
+    };
   }
 
   function pointerDown(event) {
@@ -599,6 +649,10 @@
 
   function randomBetween(min, max) {
     return min + Math.random() * (max - min);
+  }
+
+  function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
   }
 
   function twoDigits(value) {
