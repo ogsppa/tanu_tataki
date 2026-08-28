@@ -14,6 +14,7 @@
   var canvas = document.getElementById("game");
   var ctx = canvas.getContext("2d");
   var images = {};
+  var viewport = { x: 0, y: 0, width: DESIGN_WIDTH, height: DESIGN_HEIGHT, scale: 1 };
   var state = {
     screen: "loading",
     score: 0,
@@ -97,9 +98,19 @@
     var ratio = 1;
     var width = Math.max(1, Math.floor(window.innerWidth * ratio));
     var height = Math.max(1, Math.floor(window.innerHeight * ratio));
+    var scale = Math.min(width / DESIGN_WIDTH, height / DESIGN_HEIGHT);
+    var viewportWidth = DESIGN_WIDTH * scale;
+    var viewportHeight = DESIGN_HEIGHT * scale;
     canvas.width = width;
     canvas.height = height;
-    ctx.setTransform(width / DESIGN_WIDTH, 0, 0, height / DESIGN_HEIGHT, 0, 0);
+    viewport = {
+      x: (width - viewportWidth) / 2,
+      y: (height - viewportHeight) / 2,
+      width: viewportWidth,
+      height: viewportHeight,
+      scale: scale
+    };
+    applyGameTransform();
   }
 
   function loop(now) {
@@ -193,7 +204,8 @@
   function clear() {
     ctx.save();
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = WHITE;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.restore();
   }
 
@@ -289,9 +301,11 @@
     var touch = event.changedTouches && event.changedTouches[0];
     var source = touch || event;
     var rect = canvas.getBoundingClientRect();
+    var canvasX = source.clientX - rect.left;
+    var canvasY = source.clientY - rect.top;
     return {
-      x: ((source.clientX - rect.left) / rect.width) * DESIGN_WIDTH,
-      y: ((source.clientY - rect.top) / rect.height) * DESIGN_HEIGHT
+      x: (canvasX - viewport.x) / viewport.scale,
+      y: (canvasY - viewport.y) / viewport.scale
     };
   }
 
@@ -593,6 +607,10 @@
 
   function nowMs() {
     return window.performance && performance.now ? performance.now() : Date.now();
+  }
+
+  function applyGameTransform() {
+    ctx.setTransform(viewport.scale, 0, 0, viewport.scale, viewport.x, viewport.y);
   }
 
   function shuffle(items) {
