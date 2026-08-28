@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  var DESIGN_WIDTH = 1600;
+  var DESIGN_WIDTH = 1200;
   var DESIGN_HEIGHT = 900;
   var GAME_SECONDS = 30;
   var COUNTDOWN_SECONDS = 3.8;
@@ -247,8 +247,8 @@
     lines.forEach(function (line, index) {
       centerText(line, 118 + index * 42, 30, NAVY, false);
     });
-    drawImageContain(images.instructionTanu, 660, 530, 270, 270);
-    drawImageContain(images.instructionIno, 955, 530, 315, 270);
+    drawImageContain(images.instructionTanu, DESIGN_WIDTH / 2 - 150, 530, 250, 270);
+    drawImageContain(images.instructionIno, DESIGN_WIDTH / 2 + 155, 530, 300, 270);
     button("げーむすたーと", buttonRect("instructions"));
   }
 
