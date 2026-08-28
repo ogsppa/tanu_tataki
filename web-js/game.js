@@ -46,7 +46,8 @@
   };
 
   var soundAssets = {
-    bgm: "assets/sounds/bgm.mp3",
+    gameBgm: "assets/bgm.mp3",
+    menuBgm: "assets/bgm_menu.mp3",
     hit: "assets/sounds/hit.mp3",
     ok: "assets/sounds/ok.mp3"
   };
@@ -83,8 +84,8 @@
     Object.keys(soundAssets).forEach(function (key) {
       var audio = new Audio(soundAssets[key]);
       audio.preload = "auto";
-      audio.volume = key === "bgm" ? 0.45 : 0.8;
-      if (key === "bgm") audio.loop = true;
+      audio.volume = key === "gameBgm" || key === "menuBgm" ? 0.45 : 0.8;
+      if (key === "gameBgm" || key === "menuBgm") audio.loop = true;
       sounds[key] = audio;
     });
   }
@@ -150,7 +151,7 @@
       state.resultTimer = Math.max(0, state.resultTimer - dt);
       if (state.resultTimer <= 0) {
         state.screen = "start";
-        stopBgm();
+        playMenuBgm();
       }
       return;
     }
@@ -163,7 +164,8 @@
       state.screen = "result";
       state.resultTimer = RESULT_SECONDS;
       hideAllMoles();
-      stopBgm();
+      stopGameBgm();
+      playMenuBgm();
       return;
     }
 
@@ -351,6 +353,7 @@
     if (state.screen === "start" && inRect(point, buttonRect("start"))) {
       playSound("ok");
       state.screen = "instructions";
+      playMenuBgm();
     } else if (state.screen === "instructions" && inRect(point, buttonRect("instructions"))) {
       playSound("ok");
       beginCountdown();
@@ -358,7 +361,7 @@
       playSound("ok");
       state.screen = "start";
       state.resultTimer = 0;
-      stopBgm();
+      playMenuBgm();
     } else if (state.screen === "playing") {
       hitMoles(point);
     }
@@ -403,7 +406,8 @@
     state.resultTimer = 0;
     state.screen = "countdown";
     hideAllMoles();
-    playBgm();
+    stopMenuBgm();
+    playGameBgm();
   }
 
   function startPlaying() {
@@ -691,9 +695,27 @@
     } catch (error) {}
   }
 
-  function playBgm() {
-    var bgm = sounds.bgm;
-    if (!bgm) return;
+  function playGameBgm() {
+    stopMenuBgm();
+    playLoop("gameBgm");
+  }
+
+  function playMenuBgm() {
+    stopGameBgm();
+    playLoop("menuBgm");
+  }
+
+  function stopGameBgm() {
+    stopLoop("gameBgm");
+  }
+
+  function stopMenuBgm() {
+    stopLoop("menuBgm");
+  }
+
+  function playLoop(name) {
+    var bgm = sounds[name];
+    if (!bgm || !bgm.paused) return;
     try {
       bgm.currentTime = 0;
       var promise = bgm.play();
@@ -701,8 +723,8 @@
     } catch (error) {}
   }
 
-  function stopBgm() {
-    var bgm = sounds.bgm;
+  function stopLoop(name) {
+    var bgm = sounds[name];
     if (!bgm) return;
     try {
       bgm.pause();
