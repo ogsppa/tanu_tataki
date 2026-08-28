@@ -23,7 +23,9 @@ MOLE_SPECS = [
 async def main_async() -> None:
     settings = load_settings()
     pygame.init()
+    audio = None
     try:
+        audio = AudioController()
         is_web = sys.platform == "emscripten"
         flags = pygame.FULLSCREEN if settings.get("fullscreen") else pygame.RESIZABLE
         screen = pygame.display.set_mode(
@@ -80,14 +82,27 @@ async def main_async() -> None:
                     )
 
             state.menu_button_rect = renderer.button_rect_for(state.screen)
+            previous_screen = state.screen
             state.handle_menu_click(events)
+            if state.screen != previous_screen:
+                audio.play_ok()
+                if previous_screen == "instructions" and state.screen == "countdown":
+                    audio.play_bgm()
             points = []
             for provider in providers:
                 points.extend(provider.get_points(events))
+            previous_score = state.score
+            was_running = state.running
             state.update(dt, points)
+            if state.score > previous_score:
+                audio.play_hit()
+            if was_running and state.screen == "result":
+                audio.stop_bgm()
             renderer.draw(state)
             await asyncio.sleep(0)
     finally:
+        if audio is not None:
+            audio.stop_bgm()
         pygame.quit()
 
 
@@ -111,6 +126,48 @@ def _scale_to_width(image: pygame.Surface, width: int) -> pygame.Surface:
     ratio = width / image.get_width()
     size = (width, round(image.get_height() * ratio))
     return pygame.transform.smoothscale(image, size)
+
+
+class AudioController:
+    def __init__(self) -> None:
+        self.enabled = False
+        self.bgm: pygame.mixer.Sound | None = None
+        self.hit: pygame.mixer.Sound | None = None
+        self.ok: pygame.mixer.Sound | None = None
+        try:
+            if not pygame.mixer.get_init():
+                pygame.mixer.init()
+            self.bgm = self._load("bgm.mp3", 0.45)
+            self.hit = self._load("hit.mp3", 0.8)
+            self.ok = self._load("ok.mp3", 0.8)
+            self.enabled = True
+        except pygame.error:
+            self.enabled = False
+
+    def play_bgm(self) -> None:
+        if not self.enabled or self.bgm is None:
+            return
+        self.bgm.stop()
+        self.bgm.play(loops=-1)
+
+    def stop_bgm(self) -> None:
+        if self.bgm is not None:
+            self.bgm.stop()
+
+    def play_hit(self) -> None:
+        self._play(self.hit)
+
+    def play_ok(self) -> None:
+        self._play(self.ok)
+
+    def _load(self, filename: str, volume: float) -> pygame.mixer.Sound:
+        sound = pygame.mixer.Sound(str(ASSET_DIR / "sounds" / filename))
+        sound.set_volume(volume)
+        return sound
+
+    def _play(self, sound: pygame.mixer.Sound | None) -> None:
+        if self.enabled and sound is not None:
+            sound.play()
 
 
 if __name__ == "__main__":

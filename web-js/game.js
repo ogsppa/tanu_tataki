@@ -14,6 +14,7 @@
   var canvas = document.getElementById("game");
   var ctx = canvas.getContext("2d");
   var images = {};
+  var sounds = {};
   var viewport = { x: 0, y: 0, width: DESIGN_WIDTH, height: DESIGN_HEIGHT, scale: 1 };
   var state = {
     screen: "loading",
@@ -44,6 +45,12 @@
     hamsterHit: "assets/hamster_hit.png"
   };
 
+  var soundAssets = {
+    bgm: "assets/sounds/bgm.mp3",
+    hit: "assets/sounds/hit.mp3",
+    ok: "assets/sounds/ok.mp3"
+  };
+
   var moleSpecs = [
     { name: "tanuki", normal: "tanukiNormal", hit: "tanukiHit", width: 242, points: 1, reaction: "うわ！" },
     { name: "boar", normal: "boarNormal", hit: "boarHit", width: 265, points: 1, reaction: "ギャ！" },
@@ -69,6 +76,16 @@
       };
       image.src = assets[key];
       images[key] = image;
+    });
+  }
+
+  function loadSounds() {
+    Object.keys(soundAssets).forEach(function (key) {
+      var audio = new Audio(soundAssets[key]);
+      audio.preload = "auto";
+      audio.volume = key === "bgm" ? 0.45 : 0.8;
+      if (key === "bgm") audio.loop = true;
+      sounds[key] = audio;
     });
   }
 
@@ -133,6 +150,7 @@
       state.resultTimer = Math.max(0, state.resultTimer - dt);
       if (state.resultTimer <= 0) {
         state.screen = "start";
+        stopBgm();
       }
       return;
     }
@@ -145,6 +163,7 @@
       state.screen = "result";
       state.resultTimer = RESULT_SECONDS;
       hideAllMoles();
+      stopBgm();
       return;
     }
 
@@ -330,12 +349,16 @@
     var point = eventPoint(event);
     state.pointer = { x: point.x, y: point.y, active: true };
     if (state.screen === "start" && inRect(point, buttonRect("start"))) {
+      playSound("ok");
       state.screen = "instructions";
     } else if (state.screen === "instructions" && inRect(point, buttonRect("instructions"))) {
+      playSound("ok");
       beginCountdown();
     } else if (state.screen === "result" && inRect(point, buttonRect("result"))) {
+      playSound("ok");
       state.screen = "start";
       state.resultTimer = 0;
+      stopBgm();
     } else if (state.screen === "playing") {
       hitMoles(point);
     }
@@ -367,6 +390,7 @@
         mole.state = "hit";
         mole.hitTimer = 0.16;
         state.score += mole.spec.points;
+        playSound("hit");
         return;
       }
     }
@@ -379,6 +403,7 @@
     state.resultTimer = 0;
     state.screen = "countdown";
     hideAllMoles();
+    playBgm();
   }
 
   function startPlaying() {
@@ -655,6 +680,36 @@
     return Math.max(min, Math.min(max, value));
   }
 
+  function playSound(name) {
+    var sound = sounds[name];
+    if (!sound) return;
+    try {
+      var player = sound.cloneNode ? sound.cloneNode() : new Audio(soundAssets[name]);
+      player.volume = sound.volume;
+      var promise = player.play();
+      if (promise && promise.catch) promise.catch(function () {});
+    } catch (error) {}
+  }
+
+  function playBgm() {
+    var bgm = sounds.bgm;
+    if (!bgm) return;
+    try {
+      bgm.currentTime = 0;
+      var promise = bgm.play();
+      if (promise && promise.catch) promise.catch(function () {});
+    } catch (error) {}
+  }
+
+  function stopBgm() {
+    var bgm = sounds.bgm;
+    if (!bgm) return;
+    try {
+      bgm.pause();
+      bgm.currentTime = 0;
+    } catch (error) {}
+  }
+
   function twoDigits(value) {
     return value < 10 ? "0" + value : String(value);
   }
@@ -682,5 +737,6 @@
   canvas.addEventListener("touchstart", pointerDown, false);
   canvas.addEventListener("touchend", pointerUp, false);
   canvas.addEventListener("touchmove", function (event) { event.preventDefault(); }, false);
+  loadSounds();
   loadImages();
 }());
