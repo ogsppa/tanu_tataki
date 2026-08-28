@@ -45,9 +45,9 @@
   };
 
   var moleSpecs = [
-    { name: "tanuki", normal: "tanukiNormal", hit: "tanukiHit", width: 210, points: 1 },
-    { name: "boar", normal: "boarNormal", hit: "boarHit", width: 230, points: 1 },
-    { name: "hamster", normal: "hamsterNormal", hit: "hamsterHit", width: 190, points: 1 }
+    { name: "tanuki", normal: "tanukiNormal", hit: "tanukiHit", width: 242, points: 1 },
+    { name: "boar", normal: "boarNormal", hit: "boarHit", width: 265, points: 1 },
+    { name: "hamster", normal: "hamsterNormal", hit: "hamsterHit", width: 220, points: 1 }
   ];
 
   function loadImages() {
@@ -467,7 +467,7 @@
   }
 
   function signRect() {
-    return containRect(images.sign, DESIGN_WIDTH * 0.54, DESIGN_HEIGHT * 0.46, DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2);
+    return containRect(images.sign, DESIGN_WIDTH * 0.66, DESIGN_HEIGHT * 0.56, DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2);
   }
 
   function signVisibleRect() {
