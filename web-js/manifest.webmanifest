@@ -1,0 +1,19 @@
+{
+  "name": "タヌたたき",
+  "short_name": "タヌたたき",
+  "description": "タップしてあそぶタヌたたきゲーム",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "./assets/title.png",
+      "sizes": "1000x1000",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

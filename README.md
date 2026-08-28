@@ -32,6 +32,8 @@ The static site is generated under `web-src/build/web`.
 
 Open `web-js/index.html` directly, or serve the folder as a static site.
 
+To hide the Chrome address bar on Android, open the deployed site in Chrome, add it to the home screen, then launch it from the home screen icon. The lightweight build includes a web app manifest for fullscreen/standalone display.
+
 ## Cloudflare Workers Builds
 
 `wrangler.toml` points Cloudflare Workers static assets at the lightweight JavaScript build:
