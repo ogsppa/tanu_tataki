@@ -50,8 +50,8 @@
   };
 
   var soundAssets = {
-    gameBgm: "assets/bgm.mp3",
-    menuBgm: "assets/bgm_menu.mp3",
+    gameBgm: "assets/sounds/bgm.mp3",
+    menuBgm: "assets/sounds/bgm_menu.mp3",
     hit: "assets/sounds/hit.mp3",
     ok: "assets/sounds/ok.mp3"
   };

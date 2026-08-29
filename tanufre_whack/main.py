@@ -58,6 +58,7 @@ async def main_async() -> None:
             MouseInput(),
             KeyboardInput(lambda: [(mole.draw_rect.centerx, mole.draw_rect.centery) for mole in moles]),
         ]
+        audio.play_menu_bgm()
 
         running = True
         while running:
@@ -86,7 +87,10 @@ async def main_async() -> None:
             state.handle_menu_click(events)
             if state.screen != previous_screen:
                 audio.play_ok()
+                if state.screen in ("start", "instructions"):
+                    audio.play_menu_bgm()
                 if previous_screen == "instructions" and state.screen == "countdown":
+                    audio.stop_menu_bgm()
                     audio.play_bgm()
             points = []
             for provider in providers:
@@ -98,11 +102,13 @@ async def main_async() -> None:
                 audio.play_hit()
             if was_running and state.screen == "result":
                 audio.stop_bgm()
+                audio.play_menu_bgm()
             renderer.draw(state)
             await asyncio.sleep(0)
     finally:
         if audio is not None:
             audio.stop_bgm()
+            audio.stop_menu_bgm()
         pygame.quit()
 
 
@@ -132,12 +138,14 @@ class AudioController:
     def __init__(self) -> None:
         self.enabled = False
         self.bgm: pygame.mixer.Sound | None = None
+        self.menu_bgm: pygame.mixer.Sound | None = None
         self.hit: pygame.mixer.Sound | None = None
         self.ok: pygame.mixer.Sound | None = None
         try:
             if not pygame.mixer.get_init():
                 pygame.mixer.init()
             self.bgm = self._load("bgm.mp3", 0.45)
+            self.menu_bgm = self._load("bgm_menu.mp3", 0.45)
             self.hit = self._load("hit.mp3", 0.8)
             self.ok = self._load("ok.mp3", 0.8)
             self.enabled = True
@@ -153,6 +161,17 @@ class AudioController:
     def stop_bgm(self) -> None:
         if self.bgm is not None:
             self.bgm.stop()
+
+    def play_menu_bgm(self) -> None:
+        if not self.enabled or self.menu_bgm is None:
+            return
+        self.stop_bgm()
+        self.menu_bgm.stop()
+        self.menu_bgm.play(loops=-1)
+
+    def stop_menu_bgm(self) -> None:
+        if self.menu_bgm is not None:
+            self.menu_bgm.stop()
 
     def play_hit(self) -> None:
         self._play(self.hit)
