@@ -283,7 +283,7 @@
       drawResultMessage();
       button("さいしょにもどる", buttonRect("result"));
     } else if (state.speedUpTimer > 0) {
-      centerText("SPEED UP", 104, 64, WHITE, true);
+      centerText("SPEED UP", 64, 64, WHITE, true);
     }
   }
 
@@ -334,7 +334,7 @@
     if (state.screen !== "playing" || state.combo < 2) return;
     var pop = 1 + state.comboPopTimer * 0.35;
     ctx.save();
-    ctx.translate(DESIGN_WIDTH / 2, 100);
+    ctx.translate(DESIGN_WIDTH / 2, 132);
     ctx.rotate(-0.04);
     setFont(Math.round(46 * pop));
     ctx.textAlign = "center";

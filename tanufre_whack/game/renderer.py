@@ -123,7 +123,7 @@ class Renderer:
             self._label(f"SCORE {state.score}", 28, 24, self.font_medium)
             self._label(f"TIME {int(state.remaining_seconds + 0.999):02d}", self.width - 190, 24, self.font_medium)
         if state.screen == "playing" and state.combo_count >= 2:
-            self._combo_label(f"{state.combo_count}れんぞく！", 100, state.combo_bonus_timer > 0.0)
+            self._combo_label(f"{state.combo_count}れんぞく！", 132, state.combo_bonus_timer > 0.0)
         if state.screen == "start":
             title_rect = self.title.get_rect(center=(self.width // 2, round(self.height * 0.34)))
             self.screen.blit(self.title, title_rect)
@@ -159,7 +159,7 @@ class Renderer:
                 )
             self._button_label("さいしょにもどる", result_button_rect)
         elif state.speed_up_timer > 0.0:
-            self._center_label("SPEED UP", 104, self.font_large)
+            self._center_label("SPEED UP", 64, self.font_large)
 
     def _draw_instructions(self) -> None:
         lines = [
