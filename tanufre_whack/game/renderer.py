@@ -123,7 +123,7 @@ class Renderer:
             self._label(f"SCORE {state.score}", 28, 24, self.font_medium)
             self._label(f"TIME {int(state.remaining_seconds + 0.999):02d}", self.width - 190, 24, self.font_medium)
         if state.screen == "playing" and state.combo_count >= 2:
-            self._combo_label(f"{state.combo_count}れんぞく！", 142)
+            self._combo_label(f"{state.combo_count}れんぞく！", 100, state.combo_bonus_timer > 0.0)
         if state.screen == "start":
             title_rect = self.title.get_rect(center=(self.width // 2, round(self.height * 0.34)))
             self.screen.blit(self.title, title_rect)
@@ -161,7 +161,7 @@ class Renderer:
                 )
             self._button_label("さいしょにもどる", result_button_rect)
         elif state.speed_up_timer > 0.0:
-            self._center_label("SPEED UP", self._notice_y("SPEED UP", self.font_large), self.font_large)
+            self._center_label("SPEED UP", 104, self.font_large)
 
     def _draw_instructions(self) -> None:
         lines = [
@@ -207,13 +207,20 @@ class Renderer:
             self.screen.blit(stroke, rect.move(dx, dy))
         self.screen.blit(surface, rect)
 
-    def _combo_label(self, text: str, y: float) -> None:
+    def _combo_label(self, text: str, y: float, show_bonus: bool) -> None:
         stroke = self.font_combo.render(text, True, (18, 46, 88))
         surface = self.font_combo.render(text, True, (255, 217, 74))
         rect = surface.get_rect(center=(self.width // 2, round(y)))
         for dx, dy in ((-4, 0), (4, 0), (0, -4), (0, 4), (-3, -3), (3, -3), (-3, 3), (3, 3)):
             self.screen.blit(stroke, rect.move(dx, dy))
         self.screen.blit(surface, rect)
+        if show_bonus:
+            bonus_stroke = self.font_medium.render("+3", True, (18, 46, 88))
+            bonus = self.font_medium.render("+3", True, (255, 217, 74))
+            bonus_rect = bonus.get_rect(center=(rect.right + 48, rect.centery))
+            for dx, dy in ((-3, 0), (3, 0), (0, -3), (0, 3), (-2, -2), (2, -2), (-2, 2), (2, 2)):
+                self.screen.blit(bonus_stroke, bonus_rect.move(dx, dy))
+            self.screen.blit(bonus, bonus_rect)
 
     def _center_plain_label(
         self, text: str, y: float, font: pygame.font.Font, color: tuple[int, int, int]

@@ -52,6 +52,7 @@ class GameState:
         self.combo_count = 0
         self.combo_timer = 0.0
         self.combo_pop_timer = 0.0
+        self.combo_bonus_timer = 0.0
         self.last_speed_phase = 0
         self.last_points: list[InputPoint] = []
 
@@ -150,6 +151,8 @@ class GameState:
             self.combo_timer = max(0.0, self.combo_timer - dt)
         if self.combo_pop_timer > 0.0:
             self.combo_pop_timer = max(0.0, self.combo_pop_timer - dt)
+        if self.combo_bonus_timer > 0.0:
+            self.combo_bonus_timer = max(0.0, self.combo_bonus_timer - dt)
         if self.combo_timer <= 0.0:
             self.combo_count = 0
 
@@ -249,11 +252,15 @@ class GameState:
         self.combo_count += 1
         self.combo_timer = 1.25
         self.combo_pop_timer = 0.45
+        if self.combo_count % 3 == 0:
+            self.score += 3
+            self.combo_bonus_timer = 0.75
 
     def _reset_combo(self) -> None:
         self.combo_count = 0
         self.combo_timer = 0.0
         self.combo_pop_timer = 0.0
+        self.combo_bonus_timer = 0.0
 
     def _is_point_covered_by_sign(self, x: float, y: float) -> bool:
         local_x = round(x - self.sign_image_rect.left)
