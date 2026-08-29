@@ -24,6 +24,9 @@
     resultTimer: 0,
     spawnTimer: 0,
     speedUpTimer: 0,
+    combo: 0,
+    comboTimer: 0,
+    comboPopTimer: 0,
     lastPhase: 0,
     moles: [],
     pointer: { x: 0, y: 0, active: false },
@@ -175,6 +178,9 @@
       state.speedUpTimer = 1.5;
     }
     state.speedUpTimer = Math.max(0, state.speedUpTimer - dt);
+    state.comboTimer = Math.max(0, state.comboTimer - dt);
+    state.comboPopTimer = Math.max(0, state.comboPopTimer - dt);
+    if (state.comboTimer <= 0) state.combo = 0;
 
     state.moles.forEach(function (mole) {
       updateMole(mole, dt);
@@ -219,6 +225,7 @@
       drawMoles();
       drawImageFit(images.sign, signRect());
       drawHitReactions();
+      drawCombo();
     }
     drawHud();
   }
@@ -305,6 +312,25 @@
     });
   }
 
+  function drawCombo() {
+    if (state.screen !== "playing" || state.combo < 2) return;
+    var pop = 1 + state.comboPopTimer * 0.35;
+    ctx.save();
+    ctx.translate(DESIGN_WIDTH / 2, 142);
+    ctx.rotate(-0.04);
+    setFont(Math.round(46 * pop));
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = "#122e58";
+    ctx.fillStyle = "#ffd94a";
+    ctx.shadowColor = "rgba(255, 255, 255, 0.85)";
+    ctx.shadowBlur = 8;
+    ctx.strokeText(state.combo + "れんぞく！", 0, 0);
+    ctx.fillText(state.combo + "れんぞく！", 0, 0);
+    ctx.restore();
+  }
+
   function drawReactionText(mole, rect) {
     var pos = reactionPosition(mole, rect);
     var pop = 1 + mole.hitTimer * 1.8;
@@ -363,7 +389,7 @@
       state.resultTimer = 0;
       playMenuBgm();
     } else if (state.screen === "playing") {
-      hitMoles(point);
+      if (!hitMoles(point)) resetCombo();
     }
     event.preventDefault();
   }
@@ -386,17 +412,31 @@
   }
 
   function hitMoles(point) {
-    if (pointInSign(point)) return;
+    if (pointInSign(point)) return true;
     for (var i = 0; i < state.moles.length; i += 1) {
       var mole = state.moles[i];
       if (mole.state === "visible" && inRect(point, moleRect(mole))) {
         mole.state = "hit";
         mole.hitTimer = 0.16;
         state.score += mole.spec.points;
+        registerCombo();
         playSound("hit");
-        return;
+        return true;
       }
     }
+    return false;
+  }
+
+  function registerCombo() {
+    state.combo += 1;
+    state.comboTimer = 1.25;
+    state.comboPopTimer = 0.45;
+  }
+
+  function resetCombo() {
+    state.combo = 0;
+    state.comboTimer = 0;
+    state.comboPopTimer = 0;
   }
 
   function beginCountdown() {
@@ -406,6 +446,7 @@
     state.resultTimer = 0;
     state.screen = "countdown";
     hideAllMoles();
+    resetCombo();
     stopMenuBgm();
     playGameBgm();
   }
@@ -418,6 +459,7 @@
     state.lastPhase = 0;
     state.screen = "playing";
     hideAllMoles();
+    resetCombo();
   }
 
   function hideAllMoles() {

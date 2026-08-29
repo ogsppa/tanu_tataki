@@ -57,6 +57,7 @@ class Renderer:
         self.font_title = self._font(76)
         self.font_large = self._font(64)
         self.font_reaction = self._font(48)
+        self.font_combo = self._font(46)
         self.font_medium = self._font(34)
         self.font_small = self._font(24)
         self.font_instruction = self._font(30)
@@ -121,6 +122,8 @@ class Renderer:
         if state.screen in ("playing", "countdown", "result"):
             self._label(f"SCORE {state.score}", 28, 24, self.font_medium)
             self._label(f"TIME {int(state.remaining_seconds + 0.999):02d}", self.width - 190, 24, self.font_medium)
+        if state.screen == "playing" and state.combo_count >= 2:
+            self._combo_label(f"{state.combo_count}れんぞく！", 142)
         if state.screen == "start":
             title_rect = self.title.get_rect(center=(self.width // 2, round(self.height * 0.34)))
             self.screen.blit(self.title, title_rect)
@@ -201,6 +204,14 @@ class Renderer:
         surface = self.font_reaction.render(text, True, (255, 217, 74))
         rect = surface.get_rect(center=center)
         for dx, dy in ((-3, 0), (3, 0), (0, -3), (0, 3), (-2, -2), (2, -2), (-2, 2), (2, 2)):
+            self.screen.blit(stroke, rect.move(dx, dy))
+        self.screen.blit(surface, rect)
+
+    def _combo_label(self, text: str, y: float) -> None:
+        stroke = self.font_combo.render(text, True, (18, 46, 88))
+        surface = self.font_combo.render(text, True, (255, 217, 74))
+        rect = surface.get_rect(center=(self.width // 2, round(y)))
+        for dx, dy in ((-4, 0), (4, 0), (0, -4), (0, 4), (-3, -3), (3, -3), (-3, 3), (3, 3)):
             self.screen.blit(stroke, rect.move(dx, dy))
         self.screen.blit(surface, rect)
 
