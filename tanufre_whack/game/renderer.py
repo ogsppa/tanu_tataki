@@ -130,7 +130,7 @@ class Renderer:
             start_button_rect = self.button_rect_for("start")
             self._button_label("すたーと！", start_button_rect)
             self._center_plain_label(
-                "50てんいじょうで あいことばをげっとしよう！",
+                "50てんいじょうで 合言葉をげっとしよう！",
                 start_button_rect.bottom + 44,
                 self.font_small,
                 (18, 46, 88),
@@ -164,7 +164,7 @@ class Renderer:
     def _draw_instructions(self) -> None:
         lines = [
             "まんなかのかんばんから、",
-            "タヌキ、イノシシさん、はむさんがとびだすよ！",
+            "タヌキ、イノシシさん、ハムさんがとびだすよ！",
             "でてきたらタップしよう！",
         ]
         for index, line in enumerate(lines):

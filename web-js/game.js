@@ -273,7 +273,7 @@
     if (state.screen === "start") {
       drawImageContain(images.title, DESIGN_WIDTH / 2, DESIGN_HEIGHT * 0.34, DESIGN_WIDTH * 0.52, DESIGN_HEIGHT * 0.46);
       button("すたーと！", buttonRect("start"));
-      centerText("50てんいじょうで あいことばをげっとしよう！", DESIGN_HEIGHT - 40, 24, NAVY, false);
+      centerText("50てんいじょうで 合言葉をげっとしよう！", DESIGN_HEIGHT - 40, 24, NAVY, false);
     } else if (state.screen === "instructions") {
       drawInstructions();
     } else if (state.screen === "countdown") {
@@ -290,7 +290,7 @@
   function drawInstructions() {
     var lines = [
       "まんなかのかんばんから、",
-      "タヌキ、イノシシさん、はむさんがとびだすよ！",
+      "タヌキ、イノシシさん、ハムさんがとびだすよ！",
       "でてきたらタップしよう！"
     ];
     lines.forEach(function (line, index) {
