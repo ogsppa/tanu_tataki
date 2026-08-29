@@ -130,7 +130,7 @@ class Renderer:
             start_button_rect = self.button_rect_for("start")
             self._button_label("すたーと！", start_button_rect)
             self._center_plain_label(
-                "35点以上を取って限定ステッカーをげっとしよう！",
+                "50てんいじょうで あいことばをげっとしよう！",
                 start_button_rect.bottom + 44,
                 self.font_small,
                 (18, 46, 88),
@@ -145,12 +145,10 @@ class Renderer:
             if state.has_prize_score:
                 self._message_lines(
                     [
-                        "おめでとう！限定ステッカーげっとだよ！",
-                        "スタッフさんに",
-                        "『タヌキとともだちになった！』",
-                        "という合言葉を伝えてね",
+                        "もくひょうクリアー！おめでとう♪",
+                        "合言葉は「てんさい」だよ！",
                     ],
-                    self._result_message_y(4, result_button_rect),
+                    self._result_message_y(2, result_button_rect),
                     (18, 46, 88),
                 )
             else:
@@ -165,9 +163,9 @@ class Renderer:
 
     def _draw_instructions(self) -> None:
         lines = [
-            "中央に置かれている看板から、",
-            "タヌキ、イノシシさん、はむさんが飛び出すよ！",
-            "飛び出して来たらタップしよう！",
+            "まんなかのかんばんから、",
+            "タヌキ、イノシシさん、はむさんがとびだすよ！",
+            "でてきたらタップしよう！",
         ]
         for index, line in enumerate(lines):
             self._center_plain_label(line, 118 + index * 42, self.font_instruction, (18, 46, 88))
