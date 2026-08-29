@@ -27,6 +27,7 @@
     combo: 0,
     comboTimer: 0,
     comboPopTimer: 0,
+    comboBonusTimer: 0,
     lastPhase: 0,
     moles: [],
     pointer: { x: 0, y: 0, active: false },
@@ -180,6 +181,7 @@
     state.speedUpTimer = Math.max(0, state.speedUpTimer - dt);
     state.comboTimer = Math.max(0, state.comboTimer - dt);
     state.comboPopTimer = Math.max(0, state.comboPopTimer - dt);
+    state.comboBonusTimer = Math.max(0, state.comboBonusTimer - dt);
     if (state.comboTimer <= 0) state.combo = 0;
 
     state.moles.forEach(function (mole) {
@@ -263,7 +265,7 @@
       drawResultMessage();
       button("さいしょにもどる", buttonRect("result"));
     } else if (state.speedUpTimer > 0) {
-      centerText("SPEED UP", 250, 64, WHITE, true);
+      centerText("SPEED UP", 104, 64, WHITE, true);
     }
   }
 
@@ -316,7 +318,7 @@
     if (state.screen !== "playing" || state.combo < 2) return;
     var pop = 1 + state.comboPopTimer * 0.35;
     ctx.save();
-    ctx.translate(DESIGN_WIDTH / 2, 142);
+    ctx.translate(DESIGN_WIDTH / 2, 100);
     ctx.rotate(-0.04);
     setFont(Math.round(46 * pop));
     ctx.textAlign = "center";
@@ -328,6 +330,11 @@
     ctx.shadowBlur = 8;
     ctx.strokeText(state.combo + "れんぞく！", 0, 0);
     ctx.fillText(state.combo + "れんぞく！", 0, 0);
+    if (state.comboBonusTimer > 0) {
+      setFont(Math.round(34 * (1 + state.comboBonusTimer * 0.4)));
+      ctx.strokeText("+3", 132, 4);
+      ctx.fillText("+3", 132, 4);
+    }
     ctx.restore();
   }
 
@@ -431,12 +438,17 @@
     state.combo += 1;
     state.comboTimer = 1.25;
     state.comboPopTimer = 0.45;
+    if (state.combo % 3 === 0) {
+      state.score += 3;
+      state.comboBonusTimer = 0.75;
+    }
   }
 
   function resetCombo() {
     state.combo = 0;
     state.comboTimer = 0;
     state.comboPopTimer = 0;
+    state.comboBonusTimer = 0;
   }
 
   function beginCountdown() {
