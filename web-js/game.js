@@ -6,7 +6,7 @@
   var GAME_SECONDS = 30;
   var COUNTDOWN_SECONDS = 3.8;
   var RESULT_SECONDS = 30;
-  var PRIZE_SCORE = 35;
+  var PRIZE_SCORE = 50;
   var NAVY = "#122e58";
   var WHITE = "#ffffff";
   var SHADOW = "#141822";
@@ -14,6 +14,7 @@
   var canvas = document.getElementById("game");
   var ctx = canvas.getContext("2d");
   var images = {};
+  var imageMasks = {};
   var sounds = {};
   var viewport = { x: 0, y: 0, width: DESIGN_WIDTH, height: DESIGN_HEIGHT, scale: 1 };
   var state = {
@@ -70,17 +71,34 @@
       image.onload = function () {
         loaded += 1;
         if (loaded === keys.length) {
+          buildImageMasks();
           initGame();
         }
       };
       image.onerror = function () {
         loaded += 1;
         if (loaded === keys.length) {
+          buildImageMasks();
           initGame();
         }
       };
       image.src = assets[key];
       images[key] = image;
+    });
+  }
+
+  function buildImageMasks() {
+    Object.keys(images).forEach(function (key) {
+      var image = images[key];
+      if (!image || !image.width || !image.height) return;
+      try {
+        var buffer = document.createElement("canvas");
+        var bufferCtx = buffer.getContext("2d");
+        buffer.width = image.width;
+        buffer.height = image.height;
+        bufferCtx.drawImage(image, 0, 0);
+        imageMasks[key] = bufferCtx.getImageData(0, 0, image.width, image.height).data;
+      } catch (error) {}
     });
   }
 
@@ -255,7 +273,7 @@
     if (state.screen === "start") {
       drawImageContain(images.title, DESIGN_WIDTH / 2, DESIGN_HEIGHT * 0.34, DESIGN_WIDTH * 0.52, DESIGN_HEIGHT * 0.46);
       button("すたーと！", buttonRect("start"));
-      centerText("35点以上を取って限定ステッカーをげっとしよう！", DESIGN_HEIGHT - 40, 24, NAVY, false);
+      centerText("50てんいじょうで あいことばをげっとしよう！", DESIGN_HEIGHT - 40, 24, NAVY, false);
     } else if (state.screen === "instructions") {
       drawInstructions();
     } else if (state.screen === "countdown") {
@@ -271,9 +289,9 @@
 
   function drawInstructions() {
     var lines = [
-      "中央に置かれている看板から、",
-      "タヌキ、イノシシさん、はむさんが飛び出すよ！",
-      "飛び出して来たらタップしよう！"
+      "まんなかのかんばんから、",
+      "タヌキ、イノシシさん、はむさんがとびだすよ！",
+      "でてきたらタップしよう！"
     ];
     lines.forEach(function (line, index) {
       centerText(line, 118 + index * 42, 30, NAVY, false);
@@ -286,13 +304,11 @@
   function drawResultMessage() {
     var lines = state.score >= PRIZE_SCORE
       ? [
-          "おめでとう！限定ステッカーげっとだよ！",
-          "スタッフさんに",
-          "『タヌキとともだちになった！』",
-          "という合言葉を伝えてね"
+          "もくひょうクリアー！おめでとう♪",
+          "合言葉は「てんさい」だよ！"
         ]
       : ["おしかった！", "よかったらまたあそんでね！"];
-    var startY = state.score >= PRIZE_SCORE ? 608 : 642;
+    var startY = state.score >= PRIZE_SCORE ? 630 : 642;
     lines.forEach(function (line, index) {
       centerText(line, startY + index * 34, 24, NAVY, false);
     });
@@ -326,8 +342,6 @@
     ctx.lineWidth = 10;
     ctx.strokeStyle = "#122e58";
     ctx.fillStyle = "#ffd94a";
-    ctx.shadowColor = "rgba(255, 255, 255, 0.85)";
-    ctx.shadowBlur = 8;
     ctx.strokeText(state.combo + "れんぞく！", 0, 0);
     ctx.fillText(state.combo + "れんぞく！", 0, 0);
     if (state.comboBonusTimer > 0) {
@@ -350,8 +364,6 @@
     ctx.lineWidth = 9;
     ctx.strokeStyle = "#122e58";
     ctx.fillStyle = "#ffd94a";
-    ctx.shadowColor = "rgba(255, 255, 255, 0.9)";
-    ctx.shadowBlur = 10;
     ctx.strokeText(mole.spec.reaction, 0, 0);
     ctx.fillText(mole.spec.reaction, 0, 0);
     ctx.restore();
@@ -422,7 +434,7 @@
     if (pointInSign(point)) return true;
     for (var i = 0; i < state.moles.length; i += 1) {
       var mole = state.moles[i];
-      if (mole.state === "visible" && inRect(point, moleRect(mole))) {
+      if (mole.state === "visible" && pointHitsMole(point, mole)) {
         mole.state = "hit";
         mole.hitTimer = 0.16;
         state.score += mole.spec.points;
@@ -633,6 +645,31 @@
     return { x: x - size.width / 2, y: y - size.height / 2, width: size.width, height: size.height };
   }
 
+  function pointHitsMole(point, mole) {
+    var rect = moleRect(mole);
+    var padding = 18;
+    if (!inRect(point, inflateRect(rect, padding))) return false;
+    var image = images[mole.spec.normal];
+    var mask = imageMasks[mole.spec.normal];
+    if (!image || !mask) return true;
+    var localX = point.x - rect.x;
+    var localY = point.y - rect.y;
+    return nearOpaquePixel(mask, image.width, image.height, localX, localY, rect.width, rect.height, padding);
+  }
+
+  function nearOpaquePixel(mask, imageWidth, imageHeight, localX, localY, drawWidth, drawHeight, padding) {
+    for (var dy = -padding; dy <= padding; dy += 4) {
+      for (var dx = -padding; dx <= padding; dx += 4) {
+        if (dx * dx + dy * dy > padding * padding) continue;
+        var sampleX = Math.round((localX + dx) / drawWidth * imageWidth);
+        var sampleY = Math.round((localY + dy) / drawHeight * imageHeight);
+        if (sampleX < 0 || sampleY < 0 || sampleX >= imageWidth || sampleY >= imageHeight) continue;
+        if (mask[(sampleY * imageWidth + sampleX) * 4 + 3] > 8) return true;
+      }
+    }
+    return false;
+  }
+
   function rectAt(mole, center) {
     var size = moleSize(mole);
     return { x: center.x - size.width / 2, y: center.y - size.height / 2, width: size.width, height: size.height };
@@ -728,6 +765,15 @@
 
   function rectsOverlap(a, b) {
     return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+  }
+
+  function inflateRect(rect, amount) {
+    return {
+      x: rect.x - amount,
+      y: rect.y - amount,
+      width: rect.width + amount * 2,
+      height: rect.height + amount * 2
+    };
   }
 
   function randomBetween(min, max) {

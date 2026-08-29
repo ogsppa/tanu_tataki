@@ -22,7 +22,7 @@ class MoleSpec:
 
 class GameState:
     COUNTDOWN_SECONDS = 3.8
-    PRIZE_SCORE = 35
+    PRIZE_SCORE = 50
     RESULT_AUTO_RETURN_SECONDS = 30.0
 
     def __init__(

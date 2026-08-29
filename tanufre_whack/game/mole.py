@@ -80,9 +80,31 @@ class Mole:
         rect = self.draw_rect
         local_x = round(x - rect.left)
         local_y = round(y - rect.top)
-        if local_x < 0 or local_y < 0 or local_x >= rect.width or local_y >= rect.height:
+        padding = 14
+        if (
+            local_x < -padding
+            or local_y < -padding
+            or local_x >= rect.width + padding
+            or local_y >= rect.height + padding
+        ):
             return False
-        return bool(self.mask.get_at((local_x, local_y)))
+        return self._near_opaque_pixel(local_x, local_y, padding)
+
+    def _near_opaque_pixel(self, local_x: int, local_y: int, padding: int) -> bool:
+        if 0 <= local_x < self.mask.get_size()[0] and 0 <= local_y < self.mask.get_size()[1]:
+            if self.mask.get_at((local_x, local_y)):
+                return True
+        for dy in range(-padding, padding + 1, 4):
+            for dx in range(-padding, padding + 1, 4):
+                sample_x = local_x + dx
+                sample_y = local_y + dy
+                if sample_x < 0 or sample_y < 0:
+                    continue
+                if sample_x >= self.mask.get_size()[0] or sample_y >= self.mask.get_size()[1]:
+                    continue
+                if dx * dx + dy * dy <= padding * padding and self.mask.get_at((sample_x, sample_y)):
+                    return True
+        return False
 
     @property
     def active(self) -> bool:
