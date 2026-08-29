@@ -49,6 +49,9 @@ class GameState:
         self.result_timer = 0.0
         self.spawn_timer = 0.0
         self.speed_up_timer = 0.0
+        self.combo_count = 0
+        self.combo_timer = 0.0
+        self.combo_pop_timer = 0.0
         self.last_speed_phase = 0
         self.last_points: list[InputPoint] = []
 
@@ -72,6 +75,7 @@ class GameState:
         self.screen = "countdown"
         self.countdown_timer = self.COUNTDOWN_SECONDS
         self.result_timer = 0.0
+        self._reset_combo()
         self._reset_moles()
 
     def start(self) -> None:
@@ -82,6 +86,7 @@ class GameState:
         self.result_timer = 0.0
         self.spawn_timer = 0.15
         self.speed_up_timer = 0.0
+        self._reset_combo()
         self.last_speed_phase = 0
         self._reset_moles()
 
@@ -123,6 +128,7 @@ class GameState:
             self.result_timer = max(0.0, self.result_timer - dt)
             if self.result_timer <= 0.0:
                 self.screen = "start"
+                self._reset_combo()
             return
         if self.screen != "playing":
             return
@@ -140,6 +146,12 @@ class GameState:
             self.speed_up_timer = 1.5
         if self.speed_up_timer > 0.0:
             self.speed_up_timer = max(0.0, self.speed_up_timer - dt)
+        if self.combo_timer > 0.0:
+            self.combo_timer = max(0.0, self.combo_timer - dt)
+        if self.combo_pop_timer > 0.0:
+            self.combo_pop_timer = max(0.0, self.combo_pop_timer - dt)
+        if self.combo_timer <= 0.0:
+            self.combo_count = 0
 
         for mole in self.moles:
             mole.update(dt)
@@ -149,9 +161,17 @@ class GameState:
                 continue
             if self._is_point_covered_by_sign(point.x, point.y):
                 continue
+            hit = False
             for mole in self.moles:
                 if mole.collide_point(point.x, point.y):
-                    self.score += mole.hit()
+                    points_gained = mole.hit()
+                    if points_gained > 0:
+                        self.score += points_gained
+                        self._register_combo()
+                        hit = True
+                        break
+            if not hit:
+                self._reset_combo()
 
         self.spawn_timer -= dt
         if self.spawn_timer <= 0.0:
@@ -169,6 +189,7 @@ class GameState:
             elif self.screen == "result" and self._is_confirm_event(event):
                 self.screen = "start"
                 self.result_timer = 0.0
+                self._reset_combo()
 
     @property
     def running(self) -> bool:
@@ -223,6 +244,16 @@ class GameState:
             mole.visible_amount = 0.0
             mole.visible_timer = 0.0
             mole.hit_timer = 0.0
+
+    def _register_combo(self) -> None:
+        self.combo_count += 1
+        self.combo_timer = 1.25
+        self.combo_pop_timer = 0.45
+
+    def _reset_combo(self) -> None:
+        self.combo_count = 0
+        self.combo_timer = 0.0
+        self.combo_pop_timer = 0.0
 
     def _is_point_covered_by_sign(self, x: float, y: float) -> bool:
         local_x = round(x - self.sign_image_rect.left)
